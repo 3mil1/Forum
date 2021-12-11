@@ -1,0 +1,30 @@
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "email": "user@mail.com",
+  "login": "User",
+  "password": "12341234"
+}
+
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 201, "Response status is not 201");
+});
+%}
+
+### Authorization by token, part 1. Retrieve and save token.
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "User",
+  "password": "12341234"
+}
+
+### Authorization by token, part 2. Use token to authorize.
+GET http://localhost:8080/api/users
+###
+
+

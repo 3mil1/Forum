@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  backend:
+    build: ./backend
+    container_name: forum
+    command: go run ./cmd/api/
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: forum-frontend
+    command: npm run start
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./frontend/src:/usr/src/app/src

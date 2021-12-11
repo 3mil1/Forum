@@ -1,0 +1,4 @@
+.idea
+.DS_Store
+FrontEnd/node_modules
+BackEnd/dataBase.db
