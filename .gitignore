@@ -2,3 +2,6 @@
 .DS_Store
 FrontEnd/node_modules
 BackEnd/dataBase.db
+BackEnd/docs
+BackEnd/.idea
+BackEnd/.api
