@@ -17,12 +17,6 @@ import {Link as L} from 'react-router-dom';
 const Header = () => {
     const {data: me, isLoading: isLoadingMe, isFetching: isFetchingMe} = auth.useAuthMeQuery('')
 
-    // const {isAuth} = useAppSelector(state => state.authReducer)
-    //
-    // useEffect(() => {
-    //     console.log("use EFF", isAuth)
-    // }, [isAuth])
-
     return (
         <>
             <GlobalStyles styles={{ul: {margin: 0, padding: 0, listStyle: 'none'}}}/>
@@ -38,14 +32,16 @@ const Header = () => {
                         Forum
                     </Typography>
                     <nav>
-                        {/*<Link*/}
-                        {/*    variant="button"*/}
-                        {/*    color="text.primary"*/}
-                        {/*    href="#"*/}
-                        {/*    sx={{my: 1, mx: 1.5}}*/}
-                        {/*>*/}
-                        {/*    Features*/}
-                        {/*</Link>*/}
+                        <Link
+                            component={L}
+                            to={'/posts'}
+                            variant="button"
+                            color="text.primary"
+                            href="#"
+                            sx={{my: 1, mx: 1.5}}
+                        >
+                            Posts
+                        </Link>
                         {/*<Link*/}
                         {/*    variant="button"*/}
                         {/*    color="text.primary"*/}

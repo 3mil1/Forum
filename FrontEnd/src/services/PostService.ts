@@ -1,13 +1,18 @@
 import {api} from "./api";
-import {IPost} from "../models/IPost";
+import {ICategory, IPost} from "../models/IPost";
 
 export const post = api.injectEndpoints({
     endpoints: (build => ({
         GetPosts: build.query<IPost[], any>({
             query: () => '/posts',
+            providesTags: ['Post'],
         }),
         PostById: build.query<IPost, string>({
             query: (id) => `/post?id=${id}`,
+            providesTags: ['Mark'],
+        }),
+        CommentsById: build.query<IPost[], string>({
+            query: (id) => `/post/comments?id=${id}`,
             providesTags: ['Mark'],
         }),
         AddMark: build.mutation({
@@ -17,6 +22,17 @@ export const post = api.injectEndpoints({
                 body: mark,
             }),
             invalidatesTags: ['Mark'],
-        })
+        }),
+        AddPost: build.mutation({
+            query: (post: any) => ({
+                url: '/post/add',
+                method: 'POST',
+                body: post,
+            }),
+            invalidatesTags: ['Post'],
+        }),
+        Categories: build.query<ICategory[], any>({
+            query: () => '/categories',
+        }),
     }))
 })

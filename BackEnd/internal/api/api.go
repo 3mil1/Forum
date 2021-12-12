@@ -53,8 +53,9 @@ func (api *API) configureRouter() {
 
 	// Posts
 	api.router.Handle(prefix+"/post/add", api.UserIdentity(ErrorHandler(api.addPost)))
-	api.router.Handle(prefix+"/posts", ErrorHandler(api.showPost))
+	api.router.Handle(prefix+"/posts", ErrorHandler(api.allPosts))
 	api.router.Handle(prefix+"/post", ErrorHandler(api.findByID))
+	api.router.Handle(prefix+"/post/comments", ErrorHandler(api.commentsByPostID))
 	api.router.Handle(prefix+"/post/user_posts", ErrorHandler(api.findByUser))
 	api.router.Handle(prefix+"/post/mark", api.UserIdentity(ErrorHandler(api.addMark)))
 	api.router.Handle(prefix+"/categories", ErrorHandler(api.showCategories))

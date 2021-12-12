@@ -10,13 +10,14 @@ import SingUp from "./components/SingUp/SingUp";
 import Profile from "./components/Profile/Profile";
 import Posts from "./components/PostsPage/Posts";
 import SinglePost from "./components/PostsPage/SinglePost";
+import MatrixBackground404 from "./components/404/404";
 
 
 function App() {
     return (
-        <div className="App">
+        <div className={"container"}>
             <Header/>
-            <Container maxWidth="lg">
+            <Container maxWidth="lg" sx={{paddingBottom: 10, paddingTop: 10}} className="content">
                 <Routes>
                     <Route path="/" element={<Main/>}/>
                     <Route path="login" element={<Login/>}/>
@@ -24,6 +25,7 @@ function App() {
                     <Route path="profile" element={<Profile/>}/>
                     <Route path="posts" element={<Posts/>}/>
                     <Route path="post/:id" element={<SinglePost/>}/>
+                    <Route path='*' element={<MatrixBackground404/>} />
                 </Routes>
             </Container>
             <Footer/>

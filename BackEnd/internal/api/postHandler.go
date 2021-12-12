@@ -46,13 +46,13 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 // @Tags         posts
 // @Produce      json
 // @Router       /posts [get]
-func (api *API) showPost(w http.ResponseWriter, r *http.Request) error {
+func (api *API) allPosts(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("GET to Show posts GET /api/posts")
 
-	allPosts, err := api.service.Post().ShowAllPosts()
+	allPosts, err := api.service.Post().ShowAll()
 	if err != nil {
-		logger.InfoLogger.Println("showPost handler:", err)
+		logger.InfoLogger.Println("allPosts handler:", err)
 		return err
 	}
 	logger.InfoLogger.Println("Get All Posts GET /api/posts")
@@ -81,6 +81,26 @@ func (api *API) findByID(w http.ResponseWriter, r *http.Request) error {
 	}
 	logger.InfoLogger.Println("Post found")
 	return json.NewEncoder(w).Encode(post)
+}
+
+func (api *API) commentsByPostID(w http.ResponseWriter, r *http.Request) error {
+	initHeaders(w)
+	logger.InfoLogger.Println("GET Find Comments by postID /api/post")
+
+	id := r.URL.Query().Get("id")
+	pID, err := strconv.Atoi(id)
+	if err != nil {
+		return appError.InvalidArgumentError(err, "cannot get post id")
+	}
+
+	comments, err := api.service.Post().CommentsByPostId(pID)
+	if err != nil {
+		logger.InfoLogger.Println("findByID handler:", err)
+		return appError.NewAppError(err, err.Error(), http.StatusBadRequest)
+	}
+
+	logger.InfoLogger.Println("Comments found")
+	return json.NewEncoder(w).Encode(comments)
 }
 
 // @Summary      Add mark

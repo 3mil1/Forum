@@ -4,7 +4,7 @@ import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
-import {IconButton} from "@mui/material";
+import {Chip, IconButton, Stack} from "@mui/material";
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import Box from '@mui/material/Box';
@@ -12,13 +12,14 @@ import styles from './posts.module.css'
 import {post} from "../../services/PostService";
 import {IPost} from "../../models/IPost";
 import moment from "moment";
-import {auth} from "../../services/AuthService";
 import {useNavigate} from "react-router-dom";
+import AddPost from "./AddPost/AddPost";
 
 
 export const date = (date: string) => {
     const dateObj = new Date(date)
-    return moment(dateObj).format('DD-MM-YYYY')
+    return moment(dateObj).fromNow()
+    // .local().format('MMMM Do YYYY, h:mm')
 }
 
 
@@ -26,12 +27,11 @@ const Posts = () => {
     const {data: posts, isLoading: isLoadingMe, isFetching: isFetchingMe} = post.useGetPostsQuery('')
 
     return (
-        <Box sx={{flexGrow: 1, maxWidth: 'md', margin: '0 auto', marginTop: 10}}>
-            <Grid container direction="column">
-                {
-                    posts && posts.map((p) => <PostCard key={p.post.id} p={p}/>)
-                }
-            </Grid>
+        <Box sx={{flexGrow: 1, maxWidth: 'md', margin: '0 auto'}}>
+            <AddPost/>
+            {
+                posts && posts.map((p) => <PostCard key={p.id} p={p}/>)
+            }
         </Box>
     );
 };
@@ -47,15 +47,17 @@ const PostCard: FC<PostItemProps> = ({p}) => {
         navigate(`/post/${id}`)
     }
 
+    const category = p.categories.split(',');
 
     return (
-        <Grid item onClick={() => handleClick(p.post.id)}>
-            <CardActionArea component="a" href="#">
+        <div style={{marginBottom: 30}} onClick={() => handleClick(p.id)}>
+            <CardActionArea component="a" style={{height: '100%'}}>
                 <Card sx={{display: 'flex'}}>
                     <CardContent sx={{flex: 1}}>
                         <div className={styles.box}>
                             <IconButton aria-label="delete" disabled color="primary">
                                 <ThumbUpAltIcon/>  <p className={styles.like}>{p.likes ? p.likes : 0}</p>
+
                             </IconButton>
                             <IconButton aria-label="delete" disabled color="primary">
                                 <ThumbDownAltIcon/> <p className={styles.like}>{p.dislikes ? p.dislikes : 0}</p>
@@ -63,21 +65,28 @@ const PostCard: FC<PostItemProps> = ({p}) => {
                         </div>
 
                         <Typography component="h2" variant="h5" align={'left'}>
-                            {p.post.subject}
+                            {p.subject}
                         </Typography>
                         <Typography variant="subtitle1" color="text.secondary" align={'left'}>
-                            {date(p.post.created_at)}
+                            {date(p.created_at)}
                         </Typography>
                         <Typography variant="subtitle1" paragraph align={'left'}>
-                            {p.post.content.substring(0, 25) + "..."}
+                            {p.content.substring(0, 255) + "..."}
                         </Typography>
-                        <Typography variant="subtitle1" color="primary" align={'right'}>
-                            Continue reading...
-                        </Typography>
+                       <div className={styles.flex}>
+                           <Stack direction="row" spacing={1}>
+                               {category.map(c =>
+                                   <Chip key={c} label={c} size="small" variant="outlined"/>
+                               )}
+                           </Stack>
+                           <Typography variant="subtitle1" color="primary">
+                               Continue reading...
+                           </Typography>
+                       </div>
                     </CardContent>
                 </Card>
             </CardActionArea>
-        </Grid>
+        </div>
     )
 }
 

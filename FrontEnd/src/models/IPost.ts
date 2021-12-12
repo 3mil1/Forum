@@ -1,13 +1,17 @@
 export interface IPost {
-    post: Post;
-    likes?: number | null;
-    dislikes?: number | null;
-}
-export interface Post {
     id: number;
     user_id: string;
     content: string;
     created_at: string;
     subject: string;
-    parent_id?: number | null;
+    user_login: string;
+    likes: number;
+    dislikes: number;
+    categories: string;
+    "parent_id": number;
+}
+
+export interface ICategory {
+    id: number;
+    name: string;
 }

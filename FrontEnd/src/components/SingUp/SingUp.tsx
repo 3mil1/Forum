@@ -74,6 +74,7 @@ export default function SingUp() {
 
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <Controller
+                            defaultValue={""}
                             name="login"
                             control={control}
                             render={({field: {onChange, value}, fieldState: {error}}) => (
@@ -96,6 +97,7 @@ export default function SingUp() {
                             }}
                         />
                         <Controller
+                            defaultValue={""}
                             name="email"
                             control={control}
                             render={({field: {onChange, value}, fieldState: {error}}) => (
@@ -122,6 +124,7 @@ export default function SingUp() {
                             }}
                         />
                         <Controller
+                            defaultValue={""}
                             name="password"
                             control={control}
                             render={({field: {onChange, value}, fieldState: {error}}) => (
@@ -148,6 +151,7 @@ export default function SingUp() {
                             }}
                         />
                         <Controller
+                            defaultValue={""}
                             name="confirmPassword"
                             control={control}
                             render={({field: {onChange, value}, fieldState: {error}}) => (

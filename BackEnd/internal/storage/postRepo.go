@@ -40,19 +40,21 @@ func (pr *PostRepo) Create(p *models.Post) (*models.Post, error) {
 		logger.ErrorLogger.Println(err)
 		return nil, appError.SystemError(err)
 	}
-	var res []string
-	for _, v := range p.Categories {
-		r := fmt.Sprintf("(%v, %v)", p.Id, v)
-		res = append(res, r)
-	}
-	query = fmt.Sprintf(`INSERT INTO posts_categories (post_id, category_id) VALUES %s`, strings.Join(res, ", "))
-	if _, err := tx.Exec(query); err != nil {
-		if err := tx.Rollback(); err != nil {
-			logger.ErrorLogger.Println(err)
-			return nil, appError.DataBaseError(err)
+	if len(p.Categories) != 0 {
+		var res []string
+		for _, v := range p.Categories {
+			r := fmt.Sprintf("(%v, %v)", p.Id, v)
+			res = append(res, r)
 		}
-		logger.ErrorLogger.Println(err)
-		return nil, appError.SystemError(err)
+		query = fmt.Sprintf(`INSERT INTO posts_categories (post_id, category_id) VALUES %s`, strings.Join(res, ", "))
+		if _, err := tx.Exec(query); err != nil {
+			if err := tx.Rollback(); err != nil {
+				logger.ErrorLogger.Println(err)
+				return nil, appError.DataBaseError(err)
+			}
+			logger.ErrorLogger.Println(err)
+			return nil, appError.SystemError(err)
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		logger.ErrorLogger.Println(err)
@@ -62,19 +64,23 @@ func (pr *PostRepo) Create(p *models.Post) (*models.Post, error) {
 }
 
 func (pr *PostRepo) ShowAll() ([]models.PostAndMarks, error) {
-	query := fmt.Sprintf(`SELECT
-									p.id, 
-									p.user_id, 
-									p.content, 
-									p.subject, 
-									p.created_at, 
-									COALESCE(p.parent_id, 0),
-									coalesce(sum(case when not ld.mark then 1 else 0 end), 0) as dislike, 
-									coalesce(sum(case when ld.mark then 1 else 0 end), 0) as like 
-								FROM posts p 
-								LEFT JOIN likes_dislikes ld on p.id = ld.post_id
-								WHERE p.parent_id is null	
-								group by p.id`)
+	query := fmt.Sprintf(`SELECT p.id,
+       p.user_id,
+       u.login,
+       p.content,
+       p.subject,
+       p.created_at,
+       COALESCE(p.parent_id, 0)                                  as parent_id,
+       coalesce(sum(case when not ld.mark then 1 else 0 end), 0) as dislike,
+       coalesce(sum(case when ld.mark then 1 else 0 end), 0)     as like,
+       group_concat(distinct c.name)                             as category_name
+FROM posts p
+         LEFT JOIN likes_dislikes ld on p.id = ld.post_id
+         INNER JOIN posts_categories pc on p.id = pc.post_id
+         INNER JOIN categories c on c.id = pc.category_id
+         INNER JOIN users u on u.id = p.user_id
+WHERE p.parent_id is null
+group by p.id`)
 	rows, err := pr.storage.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -85,7 +91,7 @@ func (pr *PostRepo) ShowAll() ([]models.PostAndMarks, error) {
 	var post []models.PostAndMarks
 	for rows.Next() {
 		p := models.PostAndMarks{}
-		err := rows.Scan(&p.Id, &p.Post.UserId, &p.Content, &p.Subject, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes)
+		err := rows.Scan(&p.Id, &p.Post.UserId, &p.UserLogin, &p.Content, &p.Subject, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes, &p.Categories)
 		if err != nil {
 			// if database cannot read row
 			log.Println(err)
@@ -97,21 +103,25 @@ func (pr *PostRepo) ShowAll() ([]models.PostAndMarks, error) {
 }
 
 func (pr *PostRepo) FindByID(id int) (*models.PostAndMarks, error) {
-	query := fmt.Sprintf(`SELECT 
-									p.id,
-									p.user_id,
-									p.content,
-									p.subject,
-									p.created_at,
-									coalesce(p.parent_id, 0),
-									coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
-									coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like
-								FROM posts p
-								LEFT JOIN likes_dislikes ld ON p.id = ld.post_id
-								WHERE id=$1`)
+	query := fmt.Sprintf(`SELECT p.id,
+       p.user_id,
+       u.login,
+       p.content,
+       p.subject,
+       p.created_at,
+       coalesce(p.parent_id, 0),
+       coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
+       coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like,
+    group_concat(distinct c.name)                             as category_name
+FROM posts p
+         LEFT JOIN likes_dislikes ld ON p.id = ld.post_id
+         INNER JOIN posts_categories pc on p.id = pc.post_id
+         INNER JOIN categories c on c.id = pc.category_id
+         INNER JOIN users u on u.id = p.user_id
+WHERE p.id =$1`)
 	row := pr.storage.db.QueryRow(query, id)
 	var post models.PostAndMarks
-	err := row.Scan(&post.Id, &post.UserId, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Dislikes, &post.Likes)
+	err := row.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Dislikes, &post.Likes, &post.Categories)
 	if err != nil {
 		return nil, appError.NotFoundError(err, "cannot find post")
 	}
@@ -125,7 +135,7 @@ func (pr *PostRepo) FindByUserId(id string) ([]models.PostAndMarks, error) {
 									p.content,
 									p.subject,
 									p.created_at,
-									coalesce(p.parent_id, 0),
+									coalesce(p.parent_id, 0) as parent_id,,
 									coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
 									coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like
 								FROM posts p
@@ -170,22 +180,35 @@ func (pr *PostRepo) AddMark(m *models.Mark) (*models.Mark, error) {
 	return m, nil
 }
 
-func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.Post, error) {
-	query := fmt.Sprintf("SELECT %s FROM posts WHERE parent_id=$1", postColumns+", created_at, id")
+func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.PostAndMarks, error) {
+	query := fmt.Sprintf(`SELECT p.id,
+       p.user_id,
+       u.login,
+       p.content,
+       p.subject,
+       p.created_at,
+       p.parent_id,
+       coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
+       coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like
+FROM posts p
+         INNER JOIN users u on u.id = p.user_id
+         LEFT JOIN likes_dislikes ld on p.id = ld.post_id
+WHERE p.parent_id = $1
+group by p.id`)
 	rows, err := pr.storage.db.Query(query, postID)
 	if err != nil {
 		return nil, appError.SystemError(err)
 	}
 	defer rows.Close()
 
-	var comments []models.Post
+	var comments []models.PostAndMarks
 	for rows.Next() {
-		var c models.Post
-		if err := rows.Scan(&c.UserId, &c.Content, &c.Subject, &c.ParentId, &c.CreatedAt, &c.Id); err != nil {
+		var p models.PostAndMarks
+		if err := rows.Scan(&p.Id, &p.Post.UserId, &p.UserLogin, &p.Content, &p.Subject, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes); err != nil {
 			log.Println(err)
 			continue
 		}
-		comments = append(comments, c)
+		comments = append(comments, p)
 	}
 	return comments, nil
 }

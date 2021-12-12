@@ -1,8 +1,14 @@
 .box {
     float: right;
+    display: flex;
 }
 
 .like {
     font-size: 23px;
-    padding-left: 2px;
+}
+
+.flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }

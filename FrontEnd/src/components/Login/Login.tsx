@@ -44,7 +44,7 @@ export default function Login() {
 
 
     if (me) {
-        navigate('/profile', { replace: true });
+        navigate('/profile', {replace: true});
     }
 
     return (
@@ -68,6 +68,7 @@ export default function Login() {
 
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <Controller
+                            defaultValue={""}
                             name="login"
                             control={control}
                             render={({field: {onChange, value}, fieldState: {error}}) => (
@@ -90,6 +91,7 @@ export default function Login() {
                             }}
                         />
                         <Controller
+                            defaultValue={""}
                             name="password"
                             control={control}
                             render={({field: {onChange, value}, fieldState: {error}}) => (

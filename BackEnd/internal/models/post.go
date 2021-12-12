@@ -21,9 +21,10 @@ type Mark struct {
 
 type PostAndMarks struct {
 	Post
-	Likes      int        `json:"likes"`
-	Dislikes   int        `json:"dislikes"`
-	Categories []Category `json:"categories,omitempty"`
+	UserLogin  string `json:"user_login,omitempty"`
+	Likes      int    `json:"likes,omitempty"`
+	Dislikes   int    `json:"dislikes,omitempty"`
+	Categories string `json:"categories,omitempty"`
 }
 
 type Category struct {

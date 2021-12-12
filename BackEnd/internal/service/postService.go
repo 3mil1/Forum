@@ -5,7 +5,6 @@ import (
 	"forum/internal/appError"
 	"forum/internal/models"
 	"forum/internal/storage"
-	"forum/pkg/logger"
 	"strings"
 )
 
@@ -32,7 +31,7 @@ func (p *PostService) Create(post *models.Post) (*models.Post, error) {
 	return posts, nil
 }
 
-func (p *PostService) ShowAllPosts() ([]models.PostAndMarks, error) {
+func (p *PostService) ShowAll() ([]models.PostAndMarks, error) {
 	posts, err := p.storage.Post().ShowAll()
 	if err != nil {
 		return nil, appError.SystemError(err)
@@ -46,17 +45,26 @@ func (p *PostService) FindById(id int) (*models.PostAndMarks, error) {
 	if err != nil {
 		return nil, err
 	}
-	pMC.Categories, err = p.storage.Post().GetCategoriesByPostID(pMC.Id)
+	//pMC.Categories, err = p.storage.Post().GetCategoriesByPostID(pMC.Id)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//if len(pMC.Categories) == 0 {
+	//	logger.InfoLogger.Println("This post has no categories")
+	//}
+	//if pMC.Comments, err = p.storage.Post().FindAllCommentsToPost(pMC.Id); err != nil {
+	//	return nil, err
+	//}
+	return pMC, nil
+}
+
+func (p *PostService) CommentsByPostId(id int) ([]models.PostAndMarks, error) {
+	comments, err := p.storage.Post().FindAllCommentsToPost(id)
 	if err != nil {
-		fmt.Println(err)
-	}
-	if len(pMC.Categories) == 0 {
-		logger.InfoLogger.Println("This post has no categories")
-	}
-	if pMC.Comments, err = p.storage.Post().FindAllCommentsToPost(pMC.Id); err != nil {
 		return nil, err
 	}
-	return pMC, nil
+
+	return comments, nil
 }
 
 // FindByUserLogin найти все посты пользователя
