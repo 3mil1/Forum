@@ -181,20 +181,31 @@ func (pr *PostRepo) AddMark(m *models.Mark) (*models.Mark, error) {
 }
 
 func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.PostAndMarks, error) {
-	query := fmt.Sprintf(`SELECT p.id,
-       p.user_id,
+	query := fmt.Sprintf(`with recursive cte (id, user_id, parent_id, content, created_at) as (
+    select id, user_id, parent_id, content, created_at
+    from posts
+    where parent_id =$1
+    union all
+    select p.id,
+           p.user_id,
+           p.parent_id,
+           p.content,
+           p.created_at
+    from posts p
+             inner join cte on p.parent_id = cte.id
+)
+select cte.id,
+       cte.user_id,
        u.login,
-       p.content,
-       p.subject,
-       p.created_at,
-       p.parent_id,
+       cte.content,
+       cte.created_at,
+       cte.parent_id,
        coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
        coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like
-FROM posts p
-         INNER JOIN users u on u.id = p.user_id
-         LEFT JOIN likes_dislikes ld on p.id = ld.post_id
-WHERE p.parent_id = $1
-group by p.id`)
+from cte
+         LEFT JOIN users u on cte.user_id = u.id
+         LEFT JOIN likes_dislikes ld on cte.id = ld.post_id
+group by cte.id`)
 	rows, err := pr.storage.db.Query(query, postID)
 	if err != nil {
 		return nil, appError.SystemError(err)
@@ -204,7 +215,7 @@ group by p.id`)
 	var comments []models.PostAndMarks
 	for rows.Next() {
 		var p models.PostAndMarks
-		if err := rows.Scan(&p.Id, &p.Post.UserId, &p.UserLogin, &p.Content, &p.Subject, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes); err != nil {
+		if err := rows.Scan(&p.Id, &p.Post.UserId, &p.UserLogin, &p.Content, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes); err != nil {
 			log.Println(err)
 			continue
 		}
