@@ -7,6 +7,7 @@ import (
 	"forum/internal/appError"
 	"forum/internal/models"
 	"forum/pkg/logger"
+	"github.com/mattn/go-sqlite3"
 	"log"
 	"strings"
 )
@@ -198,6 +199,7 @@ func (pr PostRepo) DeleteMark(m *models.Mark) (*models.Mark, error) {
 }
 
 func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.PostAndMarks, error) {
+func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.CommentsAndMarks, error) {
 	query := fmt.Sprintf(`with recursive cte (id, user_id, parent_id, content, created_at) as (
     select id, user_id, parent_id, content, created_at
     from posts
@@ -229,9 +231,9 @@ group by cte.id`)
 	}
 	defer rows.Close()
 
-	var comments []models.PostAndMarks
+	var comments []models.CommentsAndMarks
 	for rows.Next() {
-		var p models.PostAndMarks
+		var p models.CommentsAndMarks
 		if err := rows.Scan(&p.Id, &p.Post.UserId, &p.UserLogin, &p.Content, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes); err != nil {
 			log.Println(err)
 			continue
