@@ -21,7 +21,7 @@ export const post = api.injectEndpoints({
                 method: 'POST',
                 body: mark,
             }),
-            invalidatesTags: ['Mark'],
+            invalidatesTags: ['Mark', 'Post'],
         }),
         AddPost: build.mutation({
             query: (post: any) => ({
