@@ -90,7 +90,20 @@ func (p *PostService) FindByCategoryID(cat int) ([]models.PostAndMarks, error) {
 }
 
 func (p *PostService) AddMark(m *models.Mark) (*models.Mark, error) {
-	mark, err := p.storage.Post().AddMark(m)
+	mk, err := p.storage.Post().GetMark(m)
+	if err != nil {
+		return nil, appError.SystemError(err)
+	}
+	var mark *models.Mark
+	switch {
+	case mk == nil:
+		mark, err = p.storage.Post().AddMark(m)
+	case *mk == m.Mark:
+		mark, err = p.storage.Post().DeleteMark(m)
+	case *mk != m.Mark:
+		mark, err = p.storage.Post().UpdateMark(m)
+	}
+
 	if err != nil {
 		return nil, appError.SystemError(err)
 	}

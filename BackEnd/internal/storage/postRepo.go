@@ -1,12 +1,12 @@
 package storage
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"forum/internal/appError"
 	"forum/internal/models"
 	"forum/pkg/logger"
-	"github.com/mattn/go-sqlite3"
 	"log"
 	"strings"
 )
@@ -135,7 +135,7 @@ func (pr *PostRepo) FindByUserId(id string) ([]models.PostAndMarks, error) {
 									p.content,
 									p.subject,
 									p.created_at,
-									coalesce(p.parent_id, 0) as parent_id,,
+									coalesce(p.parent_id, 0) as parent_id,
 									coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
 									coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like
 								FROM posts p
@@ -159,25 +159,41 @@ func (pr *PostRepo) FindByUserId(id string) ([]models.PostAndMarks, error) {
 	}
 	return posts, nil
 }
+func (pr PostRepo) GetMark(m *models.Mark) (*bool, error) {
+	query := fmt.Sprintf("SELECT mark FROM likes_dislikes WHERE post_id=$1 and user_id=$2")
+	row := pr.storage.db.QueryRow(query, m.PostId, m.UserId)
+	var mark *bool
+	if err := row.Scan(&mark); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return mark, nil
+}
 
 func (pr *PostRepo) AddMark(m *models.Mark) (*models.Mark, error) {
 	query := fmt.Sprintf("INSERT INTO likes_dislikes (%s) VALUES ($1, $2, $3)", markerColumns)
 	if _, err := pr.storage.db.Exec(query, m.PostId, m.UserId, m.Mark); err != nil {
-		var sErr sqlite3.Error
-		if errors.As(err, &sErr) {
-
-			// Delete value if exist
-			if err.Error() == "UNIQUE constraint failed: likes_dislikes.post_id, likes_dislikes.user_id" {
-				queryUpdate := fmt.Sprintf("DELETE FROM likes_dislikes WHERE post_id=$1 and user_id=$2")
-				if _, err := pr.storage.db.Exec(queryUpdate, m.PostId, m.UserId); err != nil {
-					return nil, err
-				}
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 	return m, nil
+}
+
+func (pr *PostRepo) UpdateMark(m *models.Mark) (*models.Mark, error) {
+	query := fmt.Sprintf("UPDATE likes_dislikes SET mark=$1 WHERE post_id=$2 and user_id=$3")
+	if _, err := pr.storage.db.Exec(query, m.Mark, m.PostId, m.UserId); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (pr PostRepo) DeleteMark(m *models.Mark) (*models.Mark, error) {
+	query := fmt.Sprintf("DELETE FROM likes_dislikes WHERE post_id=$1 and user_id=$2")
+	if _, err := pr.storage.db.Exec(query, m.PostId, m.UserId); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.PostAndMarks, error) {
