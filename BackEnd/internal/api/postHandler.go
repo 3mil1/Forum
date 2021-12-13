@@ -85,7 +85,7 @@ func (api *API) findByID(w http.ResponseWriter, r *http.Request) error {
 
 func (api *API) commentsByPostID(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
-	logger.InfoLogger.Println("GET Find Comments by postID /api/post")
+	logger.InfoLogger.Println("GET Find Comments by postID /api/post/comments")
 
 	id := r.URL.Query().Get("id")
 	pID, err := strconv.Atoi(id)
@@ -158,9 +158,30 @@ func (api *API) showCategories(w http.ResponseWriter, r *http.Request) error {
 // @Router       /post{login} [get]
 func (api *API) findByUser(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
-	logger.InfoLogger.Println("GET Find Post by userID /api/post/user_posts")
+	logger.InfoLogger.Println("GET Posts by userID /api/post/user_posts")
 	login := r.URL.Query().Get("login")
 	posts, err := api.service.Post().FindByUserLogin(login)
+	if err != nil {
+		return err
+	}
+	logger.InfoLogger.Println("Posts found")
+	return json.NewEncoder(w).Encode(posts)
+}
+
+// FindByCategory show all posts in the category
+// @Summary      Find posts by category
+// @Tags         posts
+// @Produce      json
+// @Router       /post{name} [get]
+func (api *API) findByCategory(w http.ResponseWriter, r *http.Request) error {
+	initHeaders(w)
+	logger.InfoLogger.Println("GET Posts by category /api/category")
+	cat := r.URL.Query().Get("category_id")
+	id, err := strconv.Atoi(cat)
+	if err != nil {
+		return appError.InvalidArgumentError(err, "cannot get category id")
+	}
+	posts, err := api.service.Post().FindByCategory(id)
 	if err != nil {
 		return err
 	}
