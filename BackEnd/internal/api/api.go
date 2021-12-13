@@ -59,6 +59,7 @@ func (api *API) configureRouter() {
 	api.router.Handle(prefix+"/post/user_posts", ErrorHandler(api.findByUser))
 	api.router.Handle(prefix+"/post/mark", api.UserIdentity(ErrorHandler(api.addMark)))
 	api.router.Handle(prefix+"/categories", ErrorHandler(api.showCategories))
+	api.router.Handle(prefix+"/category", ErrorHandler(api.findByCategory))
 }
 
 //configureStore method

@@ -159,6 +159,7 @@ func (pr *PostRepo) FindByUserId(id string) ([]models.PostAndMarks, error) {
 	}
 	return posts, nil
 }
+
 func (pr PostRepo) GetMark(m *models.Mark) (*bool, error) {
 	query := fmt.Sprintf("SELECT mark FROM likes_dislikes WHERE post_id=$1 and user_id=$2")
 	row := pr.storage.db.QueryRow(query, m.PostId, m.UserId)
@@ -285,3 +286,8 @@ func (pr *PostRepo) GetCategoriesByPostID(id int) ([]models.Category, error) {
 	}
 	return cat, nil
 }
+
+//func (pr PostRepo) FindByCategory(cat int) ([]models.PostAndMarks, error) {
+//	query := fmt.Sprintf("SELECT ")
+//	return nil, nil
+//}

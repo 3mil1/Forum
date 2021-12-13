@@ -84,8 +84,13 @@ func (p *PostService) FindByUserLogin(login string) ([]models.PostAndMarks, erro
 	return posts, nil
 }
 
-// FindByCategoryID найти все сообщения заданной темы
-func (p *PostService) FindByCategoryID(cat int) ([]models.PostAndMarks, error) {
+// FindByCategory найти все сообщения заданной темы
+func (p *PostService) FindByCategory(cat int) ([]models.PostAndMarks, error) {
+	//posts, err := p.storage.Post().FindByCategory(cat)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return posts, nil
 	return nil, nil
 }
 
