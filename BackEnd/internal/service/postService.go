@@ -58,11 +58,13 @@ func (p *PostService) FindById(id int) (*models.PostAndMarks, error) {
 	return pMC, nil
 }
 
-func (p *PostService) CommentsByPostId(id int) ([]models.PostAndMarks, error) {
+func (p *PostService) CommentsByPostId(id int, post *models.CommentsAndMarks) ([]models.CommentsAndMarks, error) {
 	comments, err := p.storage.Post().FindAllCommentsToPost(id)
 	if err != nil {
 		return nil, err
 	}
+
+	post.AddNestedChild(comments)
 
 	return comments, nil
 }

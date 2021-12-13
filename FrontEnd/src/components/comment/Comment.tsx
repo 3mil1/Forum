@@ -90,21 +90,23 @@ export const Comment = () => {
     const {id} = useParams()
     // @ts-ignore
     const {data: commentFromJson} = post.useCommentsByIdQuery(id)
+    // commentFromJson && console.log((unflatten(commentFromJson)))
 
     return (
         <div style={{padding: "2rem"}}>
             {commentFromJson?.length} Comments
             <CommentField/>
-            {commentFromJson?.map(c => <SingleComment key={c.id} comment={c}/>)}
+            {commentFromJson?.map(c => <SingleComment key={c.id} comment={c} postID={id}/>)}
         </div>
     );
 }
 
 interface CommentItemProps {
     comment: IPost
+    postID: any
 }
 
-export const SingleComment: FC<CommentItemProps> = ({comment}) => {
+export const SingleComment: FC<CommentItemProps> = ({comment, postID}) => {
     const ref = useRef<HTMLInputElement>(null);
     const [addMark, {}] = post.useAddMarkMutation()
     const {data: me} = auth.endpoints.AuthMe.useQueryState('')
@@ -127,9 +129,10 @@ export const SingleComment: FC<CommentItemProps> = ({comment}) => {
         }
     }
 
+    console.log(comment.parent_id)
     return (
         <>
-            <div className={styles.comment}>
+            {(comment.parent_id == postID) && <div className={styles.comment}>
                 <div className={styles.avatar}>
                     <Avatar sx={{bgcolor: red[500]}}>
                         {comment.user_login.substring(0, 1)}
@@ -147,14 +150,14 @@ export const SingleComment: FC<CommentItemProps> = ({comment}) => {
                         {comment.dislikes}
                         <KeyboardArrowDownIcon fontSize={'small'} className={styles.arrow}
                                                onClick={() => handleMark(false)}/>
-                        <div style={{marginLeft: '7px'}} onClick={() => setReply(true)} >Reply</div>
+                        <div style={{marginLeft: '7px'}} onClick={() => setReply(true)}>Reply</div>
                     </div>
                 </div>
                 {reply &&
                     <div style={{maxWidth: '40%', paddingLeft: '95px'}} ref={ref}>
                         <CommentField/>
                     </div>}
-            </div>
+            </div>}
         </>
     );
 };
