@@ -41,6 +41,7 @@ const AddPost = () => {
             }
             addPost({subject: formData.subject, content: formData.content, categories: postCategories})
             setOpen(false);
+            postCategories = []
             reset()
         } catch (e) {
             console.error(e)
