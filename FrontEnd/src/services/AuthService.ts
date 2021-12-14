@@ -1,4 +1,3 @@
-import {setIsAuth} from "../reducers/authSlice";
 import {api} from "./api";
 import {IUser} from "../models/IUser";
 import {resetStateAction} from "../store/actions";

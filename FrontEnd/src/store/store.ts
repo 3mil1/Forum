@@ -1,11 +1,14 @@
 import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import {Reducer} from 'redux';
 import {RESET_STATE_ACTION_TYPE} from './actions';
-import {unauthenticatedMiddleware} from './middleware';
 import {api} from "../services/api";
+import {loadingReducer} from "../reducers/LoadingSlice";
+import {alertReducer} from "../reducers/AlertSlice";
 
 const reducers = {
     [api.reducerPath]: api.reducer,
+    loadingReducer,
+    alertReducer
 };
 
 const combinedReducer = combineReducers<typeof reducers>(reducers);
@@ -22,7 +25,6 @@ export const setupStore = () => {
     return configureStore({
         reducer: rootReducer,
         middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat([
-            // unauthenticatedMiddleware,
             api.middleware
         ]),
     });

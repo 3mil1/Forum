@@ -14,6 +14,8 @@ import {IPost} from "../../models/IPost";
 import moment from "moment";
 import {useNavigate} from "react-router-dom";
 import AddPost from "./AddPost/AddPost";
+import {useAppDispatch} from "../../hooks/redux";
+import {setLoading} from "../../reducers/LoadingSlice";
 
 
 export const date = (date: string) => {
@@ -24,14 +26,19 @@ export const date = (date: string) => {
 
 
 const Posts = () => {
-    const {data: posts, isLoading: isLoadingMe, isFetching: isFetchingMe} = post.useGetPostsQuery('')
+    const {data: posts, isLoading, isFetching} = post.useGetPostsQuery('')
+    const dispatch = useAppDispatch()
+
+    if (isLoading || isFetching) {
+        dispatch(setLoading(true))
+    } else {
+        dispatch(setLoading(false))
+    }
 
     return (
         <Box sx={{flexGrow: 1, maxWidth: 'md', margin: '0 auto'}}>
             <AddPost/>
-            {
-                posts && posts.map((p) => <PostCard key={p.id} p={p}/>)
-            }
+            {posts && posts.map((p) => <PostCard key={p.id} p={p}/>)}
         </Box>
     );
 };
@@ -73,16 +80,16 @@ const PostCard: FC<PostItemProps> = ({p}) => {
                         <Typography variant="subtitle1" paragraph align={'left'}>
                             {p.content.substring(0, 255) + "..."}
                         </Typography>
-                       <div className={styles.flex}>
-                           <Stack direction="row" spacing={1}>
-                               {category.map(c =>
-                                   <Chip key={c} label={c} size="small" variant="outlined"/>
-                               )}
-                           </Stack>
-                           <Typography variant="subtitle1" color="primary">
-                               Continue reading...
-                           </Typography>
-                       </div>
+                        <div className={styles.flex}>
+                            <Stack direction="row" spacing={1}>
+                                {category.map(c =>
+                                    <Chip key={c} label={c} size="small" variant="outlined"/>
+                                )}
+                            </Stack>
+                            <Typography variant="subtitle1" color="primary">
+                                Continue reading...
+                            </Typography>
+                        </div>
                     </CardContent>
                 </Card>
             </CardActionArea>

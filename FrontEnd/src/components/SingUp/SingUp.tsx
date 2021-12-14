@@ -49,6 +49,7 @@ export default function SingUp() {
     };
 
 
+
     if (me) {
         navigate('/profile', {replace: true});
     }

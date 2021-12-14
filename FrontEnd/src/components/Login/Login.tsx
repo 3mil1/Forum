@@ -13,13 +13,14 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {Controller, useForm} from "react-hook-form";
-import {useAppSelector} from "../../hooks/redux";
+import {useAppDispatch, useAppSelector} from "../../hooks/redux";
 import {Navigate, useLocation, useNavigate} from "react-router-dom";
 import {IconButton, InputAdornment} from "@mui/material";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
 import {useState} from "react";
 import {auth} from "../../services/AuthService";
 import {Link as L} from 'react-router-dom';
+import {AlertSlice, setAlert} from "../../reducers/AlertSlice";
 
 
 const theme = createTheme();
@@ -27,18 +28,25 @@ const theme = createTheme();
 export default function Login() {
     let navigate = useNavigate();
     let location = useLocation();
+    const dispatch = useAppDispatch()
     const {data: me, isLoading: isLoadingMe, isFetching: isFetchingMe} = auth.endpoints.AuthMe.useQueryState('')
-    const [login, {isLoading}] = auth.useLoginMutation()
-
-
+    const [login, {error}] = auth.useLoginMutation()
     const {handleSubmit, control} = useForm();
     const [togglePassword, setTogglePassword] = useState(true);
 
     const onSubmit = async (formData: { login: string, password: string }) => {
         try {
-            login({login: formData.login, password: formData.password})
+            login({login: formData.login, password: formData.password}).unwrap()
+                .catch((error) => {
+                    const errorState: AlertSlice = {
+                        isAlert: true,
+                        alertText: error.data.message,
+                        severity: 'warning'
+                    }
+                    dispatch(setAlert(errorState))
+                })
         } catch (e) {
-            console.error(e)
+            console.log("login catch err")
         }
     };
 

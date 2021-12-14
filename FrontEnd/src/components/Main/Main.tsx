@@ -3,7 +3,6 @@ import {skipToken} from "@reduxjs/toolkit/query";
 import {users} from "../../services/UserService";
 import {useAppDispatch, useAppSelector} from "../../hooks/redux";
 import {auth} from "../../services/AuthService";
-import {setIsAuth} from "../../reducers/authSlice";
 
 const Main = () => {
 
@@ -18,12 +17,12 @@ const Main = () => {
 
 
 
-    useEffect(() => {
-        if (me) {
-            dispatch(setIsAuth({isAuth: true, user: me}))
-            setState("")
-        }
-    })
+    // useEffect(() => {
+    //     if (me) {
+    //         dispatch(setIsAuth({isAuth: true, user: me}))
+    //         setState("")
+    //     }
+    // })
 
     return (
         <>
