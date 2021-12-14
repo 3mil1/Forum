@@ -48,34 +48,35 @@ type CommentsAndMarks struct {
 }
 
 func (t *CommentsAndMarks) AddNestedChild(arr []CommentsAndMarks) {
-	remember := arr[0].Id
+	if len(arr) > 0 {
+		remember := arr[0].Id
 
-	var post []CommentsAndMarks
+		var post []CommentsAndMarks
 
-	for i, comment := range arr {
-		if i == 0 {
-			post = append(post, comment)
-		}
-
-		if i > 0 && comment.ParentId == remember {
-			post[i-1].Children = append(post[i-1].Children, comment)
-		} else {
-			if len(arr) != i+1 {
-				if remember < arr[i+1].ParentId {
-					remember = arr[i+1].ParentId
-				}
+		for i, comment := range arr {
+			if i == 0 {
+				post = append(post, comment)
 			}
-			//if len(arr) == i {
-			//	post[i-1].Children = append(post[i-1].Children, comment)
-			//}
+
+			if i > 0 && comment.ParentId == remember {
+				post[i-1].Children = append(post[i-1].Children, comment)
+			} else {
+				if len(arr) != i+1 {
+					if remember < arr[i+1].ParentId {
+						remember = arr[i+1].ParentId
+					}
+				}
+				//if len(arr) == i {
+				//	post[i-1].Children = append(post[i-1].Children, comment)
+				//}
+			}
+
+			fmt.Println()
 		}
-
-		fmt.Println()
+		for _, p := range post {
+			fmt.Printf("%+v\n", p)
+		}
 	}
-	for _, p := range post {
-		fmt.Printf("%+v\n", p)
-	}
-
 }
 
 //// If this child is one level below the current node, just add it here for now

@@ -152,14 +152,14 @@ func (api *API) showCategories(w http.ResponseWriter, r *http.Request) error {
 
 }
 
-// FindByUser show all user's posts
+// findByUser show all user's posts
 // @Summary      Find posts by user ID
 // @Tags         posts
 // @Produce      json
 // @Router       /post{login} [get]
 func (api *API) findByUser(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
-	logger.InfoLogger.Println("GET Posts by userID /api/post/user_posts")
+	logger.InfoLogger.Println("GET Posts by user login /api/post/user_posts")
 	login := r.URL.Query().Get("login")
 	posts, err := api.service.Post().FindByUserLogin(login)
 	if err != nil {
@@ -169,11 +169,11 @@ func (api *API) findByUser(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(posts)
 }
 
-// FindByCategory show all posts in the category
+// findByCategory show all posts in the category
 // @Summary      Find posts by category
 // @Tags         posts
 // @Produce      json
-// @Router       /post{name} [get]
+// @Router       /post{category_id} [get]
 func (api *API) findByCategory(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("GET Posts by category /api/category")
@@ -186,6 +186,35 @@ func (api *API) findByCategory(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	logger.InfoLogger.Println("Posts found")
+
+	if len(posts) == 0 {
+		logger.InfoLogger.Println("No posts with that category")
+	} else {
+		logger.InfoLogger.Println("Posts found")
+	}
+	return json.NewEncoder(w).Encode(posts)
+}
+
+// findAllLiked show all user's liked posts
+// @Summary      Find posts by user_id
+// @Tags         posts
+// @Produce      json
+// @Router       /post/like [get]
+func (api *API) findAllLiked(w http.ResponseWriter, r *http.Request) error {
+	initHeaders(w)
+	logger.InfoLogger.Println("GET all liked posts /api/post/like")
+
+	// read from context
+	user, _ := r.Context().Value("values").(userContext)
+	fmt.Println("from context:", user)
+	posts, err := api.service.Post().FindAllLiked(user.userID)
+	if err != nil {
+		return err
+	}
+	if len(posts) == 0 {
+		logger.InfoLogger.Println("No liked posts")
+	} else {
+		logger.InfoLogger.Println("Liked posts were found")
+	}
 	return json.NewEncoder(w).Encode(posts)
 }

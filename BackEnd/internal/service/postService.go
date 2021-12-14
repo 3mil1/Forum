@@ -88,12 +88,11 @@ func (p *PostService) FindByUserLogin(login string) ([]models.PostAndMarks, erro
 
 // FindByCategory найти все сообщения заданной темы
 func (p *PostService) FindByCategory(cat int) ([]models.PostAndMarks, error) {
-	//posts, err := p.storage.Post().FindByCategory(cat)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return posts, nil
-	return nil, nil
+	posts, err := p.storage.Post().FindByCategory(cat)
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
 }
 
 func (p *PostService) AddMark(m *models.Mark) (*models.Mark, error) {
@@ -119,4 +118,8 @@ func (p *PostService) AddMark(m *models.Mark) (*models.Mark, error) {
 
 func (p *PostService) ShowAllCategories() ([]models.Category, error) {
 	return p.storage.Post().ShowAllCategories()
+}
+
+func (p *PostService) FindAllLiked(id string) ([]models.PostAndMarks, error) {
+	return p.storage.Post().FindAllLiked(id)
 }

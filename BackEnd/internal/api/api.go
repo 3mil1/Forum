@@ -60,6 +60,7 @@ func (api *API) configureRouter() {
 	api.router.Handle(prefix+"/post/mark", api.UserIdentity(ErrorHandler(api.addMark)))
 	api.router.Handle(prefix+"/categories", ErrorHandler(api.showCategories))
 	api.router.Handle(prefix+"/category", ErrorHandler(api.findByCategory))
+	api.router.Handle(prefix+"/post/like", api.UserIdentity(ErrorHandler(api.findAllLiked)))
 }
 
 //configureStore method

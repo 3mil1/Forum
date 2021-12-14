@@ -3,22 +3,22 @@ package service
 import "forum/internal/storage"
 
 type Service struct {
-	UserService *UserService
-	PostService *PostService
+	userService *UserService
+	postService *PostService
 	storage     *storage.Storage
 	session     *Session
 }
 
 func (s *Service) User() *UserService {
-	if s.UserService != nil {
-		return s.UserService
+	if s.userService != nil {
+		return s.userService
 	}
 
-	s.UserService = &UserService{
+	s.userService = &UserService{
 		storage: s.storage,
 	}
 
-	return s.UserService
+	return s.userService
 }
 
 func (s *Service) Session() *Session {
@@ -33,13 +33,13 @@ func (s *Service) Session() *Session {
 }
 
 func (s *Service) Post() *PostService {
-	if s.PostService != nil {
-		return s.PostService
+	if s.postService != nil {
+		return s.postService
 	}
-	s.PostService = &PostService{
+	s.postService = &PostService{
 		storage: s.storage,
 	}
-	return s.PostService
+	return s.postService
 }
 
 func New(s *storage.Storage) *Service {
