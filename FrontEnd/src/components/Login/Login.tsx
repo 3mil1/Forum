@@ -38,12 +38,23 @@ export default function Login() {
         try {
             login({login: formData.login, password: formData.password}).unwrap()
                 .catch((error) => {
-                    const errorState: AlertSlice = {
-                        isAlert: true,
-                        alertText: error.data.message,
-                        severity: 'warning'
+                    if (error.data) {
+                        const errorState: AlertSlice = {
+                            isAlert: true,
+                            alertText: error.data.message,
+                            severity: 'warning'
+                        }
+                        dispatch(setAlert(errorState))
+
+                    } else {
+                        // TypeError: Failed to fetch (if server down)
+                        const errorState: AlertSlice = {
+                            isAlert: true,
+                            alertText: error.error,
+                            severity: 'error'
+                        }
+                        dispatch(setAlert(errorState))
                     }
-                    dispatch(setAlert(errorState))
                 })
         } catch (e) {
             console.log("login catch err")
