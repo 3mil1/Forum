@@ -64,7 +64,7 @@ func (p *PostService) CommentsByPostId(id int, post *models.CommentsAndMarks) ([
 		return nil, err
 	}
 
-	//post.AddNestedChild(comments, post)
+	post.AddNestedChild(comments)
 
 	return comments, nil
 }

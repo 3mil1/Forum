@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -35,40 +36,47 @@ type Category struct {
 }
 
 type CommentsAndMarks struct {
-	Post
-	UserLogin  string             `json:"user_login,omitempty"`
-	Likes      int                `json:"likes,omitempty"`
-	Dislikes   int                `json:"dislikes,omitempty"`
-	Categories string             `json:"categories,omitempty"`
-	Children   []CommentsAndMarks `json:"children"`
+	Id        int                `json:"id,omitempty"`
+	UserId    string             `json:"user_id,omitempty"`
+	Content   string             `json:"content,omitempty"`
+	CreatedAt time.Time          `json:"created_at"`
+	ParentId  int                `json:"parent_id,omitempty"`
+	UserLogin string             `json:"user_login,omitempty"`
+	Likes     int                `json:"likes,omitempty"`
+	Dislikes  int                `json:"dislikes,omitempty"`
+	Children  []CommentsAndMarks `json:"children"`
 }
 
-//func (t *CommentsAndMarks) AddNestedChild(arr []CommentsAndMarks, post *CommentsAndMarks) {
-//	remember := arr[0].Id
-//
-//
-//	for i, comment := range arr {
-//		fmt.Print(remember)
-//		if i > 0 && comment.ParentId == remember {
-//			post.Children = append(post.Children, comment)
-//			fmt.Print("added: ", remember, comment.Id)
-//		} else {
-//			if len(arr) != i+1 {
-//				if remember < arr[i+1].ParentId {
-//					remember = arr[i+1].ParentId
-//				}
-//			}
-//			if len(arr) == i {
-//				post.Children = append(post.Children, comment)
-//				fmt.Print("added: ", remember, comment.Id)
-//			}
-//		}
-//
-//		fmt.Println()
-//	}
-//
-//	fmt.Printf("%+v\n", post)
-//}
+func (t *CommentsAndMarks) AddNestedChild(arr []CommentsAndMarks) {
+	remember := arr[0].Id
+
+	var post []CommentsAndMarks
+
+	for i, comment := range arr {
+		if i == 0 {
+			post = append(post, comment)
+		}
+
+		if i > 0 && comment.ParentId == remember {
+			post[i-1].Children = append(post[i-1].Children, comment)
+		} else {
+			if len(arr) != i+1 {
+				if remember < arr[i+1].ParentId {
+					remember = arr[i+1].ParentId
+				}
+			}
+			//if len(arr) == i {
+			//	post[i-1].Children = append(post[i-1].Children, comment)
+			//}
+		}
+
+		fmt.Println()
+	}
+	for _, p := range post {
+		fmt.Printf("%+v\n", p)
+	}
+
+}
 
 //// If this child is one level below the current node, just add it here for now
 //if newEntry.Level == t.Level+1 {
