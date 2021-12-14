@@ -7,6 +7,7 @@ import (
 	"forum/internal/appError"
 	"forum/internal/models"
 	"forum/pkg/logger"
+	"github.com/mattn/go-sqlite3"
 	"log"
 	"strings"
 )
@@ -70,18 +71,12 @@ func (pr *PostRepo) ShowAll() ([]models.PostAndMarks, error) {
        p.content,
        p.subject,
        p.created_at,
-       COALESCE(p.parent_id, 0)      as parent_id,
-       coalesce(dislike, 0)          as dislike,
-       coalesce(like, 0)             as dislike,
-       group_concat(distinct c.name) as category_name
+       COALESCE(p.parent_id, 0)                                  as parent_id,
+       coalesce(sum(case when not ld.mark then 1 else 0 end), 0) as dislike,
+       coalesce(sum(case when ld.mark then 1 else 0 end), 0)     as like,
+       group_concat(distinct c.name)                             as category_name
 FROM posts p
-         LEFT JOIN (
-    Select post_id,
-           sum(case when not mark then 1 else 0 end) AS dislike,
-           sum(case when mark then 1 else 0 end)     AS like
-    FROM likes_dislikes
-    group by post_id
-) as ld ON p.id = ld.post_id
+         LEFT JOIN likes_dislikes ld on p.id = ld.post_id
          INNER JOIN posts_categories pc on p.id = pc.post_id
          INNER JOIN categories c on c.id = pc.category_id
          INNER JOIN users u on u.id = p.user_id
@@ -115,25 +110,19 @@ func (pr *PostRepo) FindByID(id int) (*models.PostAndMarks, error) {
        p.content,
        p.subject,
        p.created_at,
-       coalesce(p.parent_id, 0)      as parent_id,
-       group_concat(distinct c.name) as category_name,
-       coalesce(dislike, 0) as dislike,
-       coalesce(like, 0) as dislike
+       coalesce(p.parent_id, 0),
+       coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
+       coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like,
+    group_concat(distinct c.name)                             as category_name
 FROM posts p
-         LEFT JOIN (
-    Select post_id,
-           sum(case when not mark then 1 else 0 end) AS dislike,
-           sum(case when mark then 1 else 0 end)     AS like
-    FROM likes_dislikes
-             group by post_id
-) as ld ON p.id = ld.post_id
-         LEFT JOIN users u on u.id = p.user_id
-         JOIN posts_categories pc on p.id = pc.post_id
+         LEFT JOIN likes_dislikes ld ON p.id = ld.post_id
+         INNER JOIN posts_categories pc on p.id = pc.post_id
          INNER JOIN categories c on c.id = pc.category_id
+         INNER JOIN users u on u.id = p.user_id
 WHERE p.id =$1`)
 	row := pr.storage.db.QueryRow(query, id)
 	var post models.PostAndMarks
-	err := row.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Categories, &post.Dislikes, &post.Likes)
+	err := row.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Dislikes, &post.Likes, &post.Categories)
 	if err != nil {
 		return nil, appError.NotFoundError(err, "cannot find post")
 	}
@@ -209,6 +198,7 @@ func (pr PostRepo) DeleteMark(m *models.Mark) (*models.Mark, error) {
 	return nil, nil
 }
 
+func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.PostAndMarks, error) {
 func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.CommentsAndMarks, error) {
 	query := fmt.Sprintf(`with recursive cte (id, user_id, parent_id, content, created_at) as (
     select id, user_id, parent_id, content, created_at
