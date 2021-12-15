@@ -95,8 +95,8 @@ const Posts = () => {
                     </FormControl>
                 </Box>
             </div>
-            {showMyPosts ? (myPosts ? myPosts?.map((p) => <PostCard key={p.id} p={p}/>) : "You don't have any post") :
-                showMyLiked ? (myLiked ? myLiked?.map((p) => <PostCard key={p.id} p={p}/>) : "You don't have any liked post") :
+            {showMyPosts ? (myPosts ? myPosts?.map((p) => <PostCard key={p.id} p={p}/>) : "You don't have any posts") :
+                showMyLiked ? (myLiked ? myLiked?.map((p) => <PostCard key={p.id} p={p}/>) : "You don't have any liked posts") :
 
                 (category !== '') ? filterPosts?.map((p) => <PostCard key={p.id} p={p}/>) :
                     posts?.map((p) => <PostCard key={p.id} p={p}/>)}
