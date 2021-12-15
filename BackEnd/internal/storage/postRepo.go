@@ -163,7 +163,8 @@ FROM posts p
          INNER JOIN categories c on c.id = pc.category_id
          INNER JOIN users u on u.id = p.user_id
 WHERE u.id =$1
-group by p.id`)
+group by p.id
+ORDER BY p.created_at desc`)
 	rows, err := pr.storage.db.Query(query, id)
 	if err != nil {
 		return nil, appError.SystemError(err)
@@ -374,7 +375,8 @@ FROM posts p
          INNER JOIN categories c on c.id = pc.category_id
          INNER JOIN users u on u.id = p.user_id
 WHERE p.parent_id is null and p.id IN (SELECT post_id FROM likes_dislikes WHERE mark=1 and user_id=$1)
-group by p.id`
+group by p.id
+ORDER BY p.created_at desc`
 
 	rows, err := pr.storage.db.Query(query, userID)
 	if err != nil {
