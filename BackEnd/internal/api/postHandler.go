@@ -34,7 +34,6 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 
 	post, err := api.service.Post().Create(&postFromJson)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -180,11 +179,19 @@ func (api *API) findByCategory(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("GET Posts by category /api/category")
 	cat := r.URL.Query().Get("category_id")
+	var (
+		posts []models.PostAndMarks
+		err   error
+	)
+	if cat == "" {
+		return api.allPosts(w, r)
+	}
+
 	id, err := strconv.Atoi(cat)
 	if err != nil {
 		return appError.InvalidArgumentError(err, "cannot get category id")
 	}
-	posts, err := api.service.Post().FindByCategory(id)
+	posts, err = api.service.Post().FindByCategory(id)
 	if err != nil {
 		return err
 	}
