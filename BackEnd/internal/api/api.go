@@ -56,10 +56,10 @@ func (api *API) configureRouter() {
 	api.router.Handle(prefix+"/posts", ErrorHandler(api.allPosts))
 	api.router.Handle(prefix+"/post", ErrorHandler(api.findByID))
 	api.router.Handle(prefix+"/post/comments", ErrorHandler(api.commentsByPostID))
-	api.router.Handle(prefix+"/post/user_posts", ErrorHandler(api.findByUser))
 	api.router.Handle(prefix+"/post/mark", api.UserIdentity(ErrorHandler(api.addMark)))
 	api.router.Handle(prefix+"/categories", ErrorHandler(api.showCategories))
 	api.router.Handle(prefix+"/category", ErrorHandler(api.findByCategory))
+	api.router.Handle(prefix+"/post/user_posts", api.UserIdentity(ErrorHandler(api.findByUser)))
 	api.router.Handle(prefix+"/post/like", api.UserIdentity(ErrorHandler(api.findAllLiked)))
 }
 

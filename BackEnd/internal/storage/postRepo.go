@@ -141,19 +141,29 @@ WHERE p.id =$1`
 }
 
 func (pr *PostRepo) FindByUserId(id string) ([]models.PostAndMarks, error) {
-	query := fmt.Sprintf(`SELECT 
-									p.id,
-									p.user_id,
-									p.content,
-									p.subject,
-									p.created_at,
-									coalesce(p.parent_id, 0) as parent_id,
-									coalesce(sum(case when not ld.mark then 1 else 0 end), 0) AS dislike,
-									coalesce(sum(case when ld.mark then 1 else 0 end), 0)     AS like
-								FROM posts p
-								LEFT JOIN likes_dislikes ld ON p.id = ld.post_id
-								WHERE p.user_id=$1 and p.parent_id is null
-								group by p.id`)
+	query := fmt.Sprintf(`SELECT p.id,
+       p.user_id,
+       u.login,
+       p.content,
+       p.subject,
+       p.created_at,
+       COALESCE(p.parent_id, 0)      as parent_id,
+       coalesce(dislike, 0)          as dislike,
+       coalesce(like, 0)             as dislike,
+       group_concat(distinct c.name) as category_name
+FROM posts p
+         LEFT JOIN (
+    Select post_id,
+           sum(case when not mark then 1 else 0 end) AS dislike,
+           sum(case when mark then 1 else 0 end)     AS like
+    FROM likes_dislikes
+    group by post_id
+) as ld ON p.id = ld.post_id
+         INNER JOIN posts_categories pc on p.id = pc.post_id
+         INNER JOIN categories c on c.id = pc.category_id
+         INNER JOIN users u on u.id = p.user_id
+WHERE u.id =$1
+group by p.id`)
 	rows, err := pr.storage.db.Query(query, id)
 	if err != nil {
 		return nil, appError.SystemError(err)
@@ -162,7 +172,7 @@ func (pr *PostRepo) FindByUserId(id string) ([]models.PostAndMarks, error) {
 	var posts []models.PostAndMarks
 	for rows.Next() {
 		var post models.PostAndMarks
-		err := rows.Scan(&post.Id, &post.UserId, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Dislikes, &post.Likes)
+		err := rows.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Dislikes, &post.Likes, &post.Categories)
 		if err != nil {
 			logger.ErrorLogger.Println(err)
 			continue
