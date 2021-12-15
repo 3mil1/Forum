@@ -16,7 +16,8 @@ import {IconButton, InputAdornment} from "@mui/material";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
 import {useRef, useState} from "react";
 import {auth} from "../../services/AuthService";
-
+import {useAppDispatch, useAppSelector} from "../../hooks/redux";
+import {AlertSlice, setAlert} from "../../reducers/AlertSlice";
 
 const theme = createTheme();
 
@@ -25,7 +26,8 @@ export default function SingUp() {
     const {data: me, isLoading: isLoadingMe, isFetching: isFetchingMe} = auth.endpoints.AuthMe.useQueryState('')
     const {handleSubmit, control, watch} = useForm();
     const [togglePassword, setTogglePassword] = useState(true);
-    const [signUp, {}] = auth.useSignUpMutation()
+    const dispatch = useAppDispatch()
+    const [signUp, {error}] = auth.useSignUpMutation()
 
     const password = useRef({});
     password.current = watch("password", "");
@@ -41,7 +43,14 @@ export default function SingUp() {
                     if (payload.status_code === 201) {
                         navigate(`/login`)
                     }
-
+                })
+                .catch((error) => {
+                    const errorState: AlertSlice = {
+                        isAlert: true,
+                        alertText: error.data.message,
+                        severity: 'warning'
+                    }
+                    dispatch(setAlert(errorState))
                 })
         } catch (e) {
             console.error(e)

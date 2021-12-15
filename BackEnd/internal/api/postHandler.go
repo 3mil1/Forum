@@ -153,10 +153,10 @@ func (api *API) showCategories(w http.ResponseWriter, r *http.Request) error {
 }
 
 // findByUser show all user's posts
-// @Summary      Find posts by user ID
+// @Summary      Find posts by user login
 // @Tags         posts
 // @Produce      json
-// @Router       /post{login} [get]
+// @Router       /post/user_posts?login={login} [get]
 func (api *API) findByUser(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("GET Posts by user login /api/post/user_posts")
