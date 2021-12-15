@@ -34,5 +34,8 @@ export const post = api.injectEndpoints({
         Categories: build.query<ICategory[], any>({
             query: () => '/categories',
         }),
+        FilterPosts: build.query<IPost[], string | number>({
+            query: (id) => `/category?category_id=${id}`,
+        }),
     }))
 })

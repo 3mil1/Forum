@@ -1,6 +1,5 @@
 import React, {FC, useState} from 'react';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
@@ -16,7 +15,10 @@ import {useNavigate} from "react-router-dom";
 import AddPost from "./AddPost/AddPost";
 import {useAppDispatch} from "../../hooks/redux";
 import {setLoading} from "../../reducers/LoadingSlice";
-
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, {SelectChangeEvent} from '@mui/material/Select';
 
 export const date = (date: string) => {
     const dateObj = new Date(date)
@@ -35,11 +37,43 @@ const Posts = () => {
         dispatch(setLoading(false))
     }
 
+    const [category, setCategoryID] = useState<string | number>('');
+
+    const handleChange = (event: SelectChangeEvent<typeof category>) => {
+        setCategoryID(event.target.value);
+    };
+
+    const {data: filterPosts} = post.useFilterPostsQuery(category)
+    const {data: categoryJson} = post.useCategoriesQuery('')
+
+
     return (
         <Box sx={{flexGrow: 1, maxWidth: 'md', margin: '0 auto'}}>
-            <AddPost/>
-            {posts && posts.map((p) => <PostCard key={p.id} p={p}/>)}
+            <div style={{display: "flex", justifyContent: 'space-between'}}>
+                <AddPost/>
+                <Box sx={{minWidth: 120}}>
+                    <FormControl fullWidth size={'small'}>
+                        <InputLabel id="demo-simple-select-label">Category</InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={category}
+                            label="Filter by"
+                            onChange={handleChange}
+                        >
+                            <MenuItem value="">
+                                <em>None</em>
+                            </MenuItem>
+                            {categoryJson?.map(c => <MenuItem value={c.id}>{c.name}</MenuItem>)}
+
+                        </Select>
+                    </FormControl>
+                </Box>
+            </div>
+            {(category !== '') ? filterPosts?.map((p) => <PostCard key={p.id} p={p}/>) :
+                posts?.map((p) => <PostCard key={p.id} p={p}/>)}
         </Box>
+
     );
 };
 
