@@ -160,8 +160,10 @@ func (api *API) showCategories(w http.ResponseWriter, r *http.Request) error {
 func (api *API) findByUser(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("GET Posts by user login /api/post/user_posts")
-	login := r.URL.Query().Get("login")
-	posts, err := api.service.Post().FindByUserLogin(login)
+
+	user, _ := r.Context().Value("values").(userContext)
+	fmt.Println("from context:", user)
+	posts, err := api.service.Post().FindByUserLogin(user.login)
 	if err != nil {
 		return err
 	}

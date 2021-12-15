@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
-import {Chip, IconButton, Stack} from "@mui/material";
+import {Button, Chip, IconButton, Stack} from "@mui/material";
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import Box from '@mui/material/Box';
@@ -19,6 +19,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
+import DoneIcon from '@mui/icons-material/Done';
 
 export const date = (date: string) => {
     const dateObj = new Date(date)
@@ -28,14 +29,8 @@ export const date = (date: string) => {
 
 
 const Posts = () => {
-    const {data: posts, isLoading, isFetching} = post.useGetPostsQuery('')
+    const {data: posts, isLoading: allPostsLoading, isFetching: allPostsFetching} = post.useGetPostsQuery('')
     const dispatch = useAppDispatch()
-
-    if (isLoading || isFetching) {
-        dispatch(setLoading(true))
-    } else {
-        dispatch(setLoading(false))
-    }
 
     const [category, setCategoryID] = useState<string | number>('');
 
@@ -43,14 +38,44 @@ const Posts = () => {
         setCategoryID(event.target.value);
     };
 
-    const {data: filterPosts} = post.useFilterPostsQuery(category)
-    const {data: categoryJson} = post.useCategoriesQuery('')
+    const {
+        data: filterPosts,
+        isLoading: filterPostsLoading,
+        isFetching: filterPostsFetching
+    } = post.useFilterPostsQuery(category)
+    const {
+        data: categoryJson,
+        isLoading: categoryIsLoading,
+        isFetching: categoryIsFetching
+    } = post.useCategoriesQuery('')
+    const {data: myPosts, isLoading: myPostsIsLoading, isFetching: myPostsIsFetching} = post.useMyPostsQuery('')
+    const {data: myLiked, isLoading: myLikedIsLoading, isFetching: myLikedIsFetching} = post.useMyLikesQuery('')
+
+    if (allPostsLoading || allPostsFetching || filterPostsLoading || filterPostsFetching || categoryIsLoading || categoryIsFetching || myPostsIsLoading || myPostsIsFetching || myLikedIsLoading || myLikedIsFetching) {
+        dispatch(setLoading(true))
+    } else {
+        dispatch(setLoading(false))
+    }
+
+    const [showMyPosts, setShowMyPosts] = useState(false)
+    const [showMyLiked, setShowMyLiked] = useState(false)
+
+    const handleMyPosts = () => {
+        setShowMyPosts(!showMyPosts)
+    }
+    const handleMyLiked = () => {
+        setShowMyLiked(!showMyLiked)
+    }
 
 
     return (
         <Box sx={{flexGrow: 1, maxWidth: 'md', margin: '0 auto'}}>
             <div style={{display: "flex", justifyContent: 'space-between'}}>
                 <AddPost/>
+                <Button endIcon={showMyPosts ? <DoneIcon/> : undefined} size={'small'} onClick={handleMyPosts}>Show my
+                    posts</Button>
+                <Button endIcon={showMyLiked ? <DoneIcon/> : undefined} size={'small'} onClick={handleMyLiked}>Show my
+                    liked posts</Button>
                 <Box sx={{minWidth: 120}}>
                     <FormControl fullWidth size={'small'}>
                         <InputLabel id="demo-simple-select-label">Category</InputLabel>
@@ -64,14 +89,17 @@ const Posts = () => {
                             <MenuItem value="">
                                 <em>None</em>
                             </MenuItem>
-                            {categoryJson?.map(c => <MenuItem value={c.id}>{c.name}</MenuItem>)}
+                            {categoryJson?.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
 
                         </Select>
                     </FormControl>
                 </Box>
             </div>
-            {(category !== '') ? filterPosts?.map((p) => <PostCard key={p.id} p={p}/>) :
-                posts?.map((p) => <PostCard key={p.id} p={p}/>)}
+            {showMyPosts ? (myPosts ? myPosts?.map((p) => <PostCard key={p.id} p={p}/>) : "You don't have any post") :
+                showMyLiked ? (myLiked ? myLiked?.map((p) => <PostCard key={p.id} p={p}/>) : "You don't have any liked post") :
+
+                (category !== '') ? filterPosts?.map((p) => <PostCard key={p.id} p={p}/>) :
+                    posts?.map((p) => <PostCard key={p.id} p={p}/>)}
         </Box>
 
     );
