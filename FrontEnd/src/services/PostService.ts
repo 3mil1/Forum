@@ -36,6 +36,15 @@ export const post = api.injectEndpoints({
         }),
         FilterPosts: build.query<IPost[], string | number>({
             query: (id) => `/category?category_id=${id}`,
+            providesTags: ['Post'],
+        }),
+        MyPosts: build.query<IPost[], any>({
+            query: () => `/post/user_posts`,
+            providesTags: ['Post'],
+        }),
+        MyLikes: build.query<IPost[], any>({
+            query: () => `/post/like`,
+            providesTags: ['Post'],
         }),
     }))
 })

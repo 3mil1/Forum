@@ -1,5 +1,5 @@
 import React from 'react';
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {post} from "../../services/PostService";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -15,11 +15,16 @@ import {red} from "@mui/material/colors";
 import {Comment} from "../comment/Comment";
 
 const SinglePost = () => {
+    let navigate = useNavigate();
     const {id} = useParams()
     // @ts-ignore
-    const {data: postFromJson} = post.usePostByIdQuery(id)
+    const {data: postFromJson, isError} = post.usePostByIdQuery(id)
     const {data: me} = auth.endpoints.AuthMe.useQueryState('')
     const [addMark, {}] = post.useAddMarkMutation()
+
+   if (isError) {
+       navigate('*')
+   }
 
     const handleMark = async (mark: boolean) => {
         try {
