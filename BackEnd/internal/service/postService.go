@@ -58,15 +58,36 @@ func (p *PostService) FindById(id int) (*models.PostAndMarks, error) {
 	return pMC, nil
 }
 
-func (p *PostService) CommentsByPostId(id int, post *models.CommentsAndMarks) ([]models.CommentsAndMarks, error) {
+func (p *PostService) CommentsByPostId(id int) (*models.PostAndMarks, error) {
 	comments, err := p.storage.Post().FindAllCommentsToPost(id)
 	if err != nil {
 		return nil, err
 	}
+	if len(comments) == 0 {
+		return nil, nil
+	}
+	parent, err := p.storage.Post().FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	comments = append(comments, *parent)
+	m := make(map[int][]models.PostAndMarks)
+	for _, p := range comments {
+		m[p.ParentId] = append(m[p.ParentId], p)
+	}
+	p.addNestedChild(m, parent)
+	return parent, nil
+}
 
-	post.AddNestedChild(comments)
-
-	return comments, nil
+func (p *PostService) addNestedChild(m map[int][]models.PostAndMarks, post *models.PostAndMarks) {
+	children := m[post.Id]
+	if len(children) == 0 {
+		return
+	}
+	post.Comments = children
+	for i := range post.Comments {
+		p.addNestedChild(m, &post.Comments[i])
+	}
 }
 
 // FindByUserLogin найти все посты пользователя

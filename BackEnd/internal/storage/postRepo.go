@@ -220,7 +220,7 @@ func (pr PostRepo) DeleteMark(m *models.Mark) (*models.Mark, error) {
 	return nil, nil
 }
 
-func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.CommentsAndMarks, error) {
+func (pr *PostRepo) FindAllCommentsToPost(postID int) ([]models.PostAndMarks, error) {
 	query := fmt.Sprintf(`with recursive cte (id, user_id, parent_id, content, created_at) as (
     select id, user_id, parent_id, content, created_at
     from posts
@@ -252,9 +252,9 @@ group by cte.id`)
 	}
 	defer rows.Close()
 
-	var comments []models.CommentsAndMarks
+	var comments []models.PostAndMarks
 	for rows.Next() {
-		var p models.CommentsAndMarks
+		var p models.PostAndMarks
 		if err := rows.Scan(&p.Id, &p.UserId, &p.UserLogin, &p.Content, &p.CreatedAt, &p.ParentId, &p.Dislikes, &p.Likes); err != nil {
 			log.Println(err)
 			continue

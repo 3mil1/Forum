@@ -92,13 +92,15 @@ func (api *API) commentsByPostID(w http.ResponseWriter, r *http.Request) error {
 		return appError.InvalidArgumentError(err, "cannot get post id")
 	}
 
-	var post models.CommentsAndMarks
-	comments, err := api.service.Post().CommentsByPostId(pID, &post)
+	comments, err := api.service.Post().CommentsByPostId(pID)
 	if err != nil {
 		logger.InfoLogger.Println("findByID handler:", err)
 		return appError.NewAppError(err, err.Error(), http.StatusBadRequest)
 	}
-
+	if comments == nil {
+		logger.InfoLogger.Println("No comments to this post")
+		return nil
+	}
 	logger.InfoLogger.Println("Comments found")
 	return json.NewEncoder(w).Encode(comments)
 }

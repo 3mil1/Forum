@@ -6,14 +6,14 @@ import (
 )
 
 type Post struct {
-	Id         int       `json:"id,omitempty"`
-	UserId     string    `json:"user_id,omitempty"`
-	Content    string    `json:"content,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
-	Subject    string    `json:"subject,omitempty"`
-	ParentId   int       `json:"parent_id,omitempty"`
-	Categories []int     `json:"categories,omitempty"`
-	Comments   []Post    `json:"comments,omitempty"`
+	Id         int            `json:"id,omitempty"`
+	UserId     string         `json:"user_id,omitempty"`
+	Content    string         `json:"content,omitempty"`
+	CreatedAt  time.Time      `json:"created_at"`
+	Subject    string         `json:"subject,omitempty"`
+	ParentId   int            `json:"parent_id,omitempty"`
+	Categories []int          `json:"categories,omitempty"`
+	Comments   []PostAndMarks `json:"comments,omitempty"`
 }
 
 type Mark struct {
