@@ -58,7 +58,7 @@ func (p *PostService) FindById(id int) (*models.PostAndMarks, error) {
 	return pMC, nil
 }
 
-func (p *PostService) CommentsByPostId(id int) (*models.PostAndMarks, error) {
+func (p *PostService) CommentsByPostId(id int) ([]models.PostAndMarks, error) {
 	comments, err := p.storage.Post().FindAllCommentsToPost(id)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (p *PostService) CommentsByPostId(id int) (*models.PostAndMarks, error) {
 		m[p.ParentId] = append(m[p.ParentId], p)
 	}
 	p.addNestedChild(m, parent)
-	return parent, nil
+	return parent.Comments, nil
 }
 
 func (p *PostService) addNestedChild(m map[int][]models.PostAndMarks, post *models.PostAndMarks) {
