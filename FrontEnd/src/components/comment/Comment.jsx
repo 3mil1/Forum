@@ -13,7 +13,7 @@ import {post} from "../../services/PostService";
 import {useParams} from "react-router-dom";
 import {date} from "../PostsPage/Posts";
 import {IPost} from "../../models/IPost";
-import {grey, red} from "@mui/material/colors";
+import {red} from "@mui/material/colors";
 import styles from './comment.module.css'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -86,27 +86,21 @@ export const CommentField = () => {
     )
 }
 
-export const Comment = () => {
-    const {id} = useParams()
-    // @ts-ignore
-    const {data: commentFromJson} = post.useCommentsByIdQuery(id)
-    // commentFromJson && console.log((unflatten(commentFromJson)))
+interface CommentItemProps {
+    comment: any
+}
 
+export const Comment: FC<CommentItemProps> = ({comment}) => {
     return (
         <div style={{padding: "2rem"}}>
-            {commentFromJson?.length} Comments
+            {comment?.length} Comments
             <CommentField/>
-            {commentFromJson?.map(c => <SingleComment key={c.id} comment={c} postID={id}/>)}
+            {comment?.map((c: { id: React.Key | null | undefined; }) => <SingleComment key={c.id} comment={c}/>)}
         </div>
     );
 }
 
-interface CommentItemProps {
-    comment: IPost
-    postID: any
-}
-
-export const SingleComment: FC<CommentItemProps> = ({comment, postID}) => {
+export const SingleComment: FC<CommentItemProps> = ({comment}) => {
     const ref = useRef<HTMLInputElement>(null);
     const [addMark, {}] = post.useAddMarkMutation()
     const {data: me} = auth.endpoints.AuthMe.useQueryState('')
@@ -132,7 +126,7 @@ export const SingleComment: FC<CommentItemProps> = ({comment, postID}) => {
     console.log(comment.parent_id)
     return (
         <>
-            {(comment.parent_id == postID) && <div className={styles.comment}>
+            <div className={comment.parent_id ? styles.reply : styles.comment}>
                 <div className={styles.avatar}>
                     <Avatar sx={{bgcolor: red[500]}}>
                         {comment.user_login.substring(0, 1)}
@@ -152,12 +146,18 @@ export const SingleComment: FC<CommentItemProps> = ({comment, postID}) => {
                                                onClick={() => handleMark(false)}/>
                         <div style={{marginLeft: '7px'}} onClick={() => setReply(true)}>Reply</div>
                     </div>
+                    {comment.comments &&
+                        comment.comments.map((reply: { id: React.Key | null | undefined; }) => (
+                            <Comment key={reply.id}
+                                // @ts-ignore
+                                     comment={reply}/>
+                        ))}
                 </div>
                 {reply &&
                     <div style={{maxWidth: '40%', paddingLeft: '95px'}} ref={ref}>
                         <CommentField/>
                     </div>}
-            </div>}
+            </div>
         </>
     );
 };
