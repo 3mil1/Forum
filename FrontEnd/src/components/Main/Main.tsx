@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {skipToken} from "@reduxjs/toolkit/query";
+import {skipToken} from "@reduxjs/toolkit/dist/query";
 import {users} from "../../services/UserService";
 import {useAppDispatch, useAppSelector} from "../../hooks/redux";
 import {auth} from "../../services/AuthService";

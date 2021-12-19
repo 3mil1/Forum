@@ -4,7 +4,7 @@ import {
     TextField,
     InputAdornment,
     IconButton,
-} from "@mui/material/";
+} from "@mui/material";
 import {makeStyles} from '@material-ui/styles';
 import {auth} from "../../services/AuthService";
 
