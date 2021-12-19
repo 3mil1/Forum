@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	flag.IntVar(&port, "port", 8080, "Specify the port to listen to.")
+	flag.IntVar(&port, "port", 8081, "Specify the port to listen to.")
 	flag.StringVar(&db, "db", "./dataBase.db", "Specify path to database")
 	//flag.BoolVar(&createNewDb, "createDB", false, "Specify whether to create a new database")
 }
@@ -23,7 +23,7 @@ func init() {
 // @version 1.0
 // @description This is a sample service for managing orders
 // @termsOfService http://swagger.io/terms/
-// @host localhost:8080
+// @host localhost:8081
 // @BasePath /api
 
 func main() {

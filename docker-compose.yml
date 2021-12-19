@@ -6,7 +6,7 @@ services:
     container_name: forum
     command: go run ./cmd/api/
     ports:
-      - "8080:8080"
+      - "8081:8081"
     restart: unless-stopped
 
   frontend:
@@ -14,7 +14,7 @@ services:
     container_name: forum-frontend
     command: npm run start
     ports:
-      - "3000:3000"
+      - "3001:3001"
     restart: unless-stopped
     stdin_open: true
     tty: true
