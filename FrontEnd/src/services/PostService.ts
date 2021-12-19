@@ -13,7 +13,7 @@ export const post = api.injectEndpoints({
         }),
         CommentsById: build.query<IPost[], string>({
             query: (id) => `/post/comments?id=${id}`,
-            providesTags: ['Mark'],
+            providesTags: ['Mark', 'Post'],
         }),
         AddMark: build.mutation({
             query: (mark: any) => ({

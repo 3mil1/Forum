@@ -9,6 +9,7 @@ export interface IPost {
     dislikes: number;
     categories: string;
     "parent_id": number;
+    comments?: IPost[]
 }
 
 export interface ICategory {

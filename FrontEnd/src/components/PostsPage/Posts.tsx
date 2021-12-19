@@ -62,9 +62,15 @@ const Posts = () => {
 
     const handleMyPosts = () => {
         setShowMyPosts(!showMyPosts)
+        if (showMyLiked) {
+            setShowMyLiked(false)
+        }
     }
     const handleMyLiked = () => {
         setShowMyLiked(!showMyLiked)
+        if (showMyPosts) {
+            setShowMyPosts(false)
+        }
     }
 
 
@@ -77,7 +83,7 @@ const Posts = () => {
                 <Button endIcon={showMyLiked ? <DoneIcon/> : undefined} size={'small'} onClick={handleMyLiked}>Show my
                     liked posts</Button>
                 <Box sx={{minWidth: 120}}>
-                    <FormControl fullWidth size={'small'}>
+                    <FormControl fullWidth size={'small'} disabled={showMyPosts && true || showMyLiked && true}>
                         <InputLabel id="demo-simple-select-label">Category</InputLabel>
                         <Select
                             labelId="demo-simple-select-label"

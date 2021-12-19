@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
     Avatar,
     TextField,
@@ -7,107 +7,23 @@ import {
 } from "@mui/material/";
 import {makeStyles} from '@material-ui/styles';
 import {auth} from "../../services/AuthService";
-import {Controller, useForm} from "react-hook-form";
-import SendIcon from '@mui/icons-material/Send';
+
 import {post} from "../../services/PostService";
-import {useParams} from "react-router-dom";
 import {date} from "../PostsPage/Posts";
-import {IPost} from "../../models/IPost";
 import {red} from "@mui/material/colors";
 import styles from './comment.module.css'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import {CommentField} from "./addComment";
 
-const useStyles = makeStyles((theme: any) => ({
-    root: {
-        "& .MuiTextField-root": {
-            width: "25ch",
-        },
-        "& .MuiOutlinedInput-root": {
-            position: "relative"
-        },
-        "& .MuiIconButton-root": {
-            position: "absolute",
-            bottom: '0px',
-            right: '15px'
-        }
-    }
-}));
-
-export const CommentField = () => {
-    const classes = useStyles();
-    const {control} = useForm();
-    const {data: me} = auth.endpoints.AuthMe.useQueryState('')
-
-    return (
-        <>
-            {me ? <Controller
-                    defaultValue={""}
-                    name="password"
-                    control={control}
-                    render={({field: {onChange, value}, fieldState: {error}}) => (
-                        <TextField
-                            placeholder={'Join the discussion...'}
-                            size="small"
-                            className={classes.root}
-                            multiline
-                            fullWidth
-                            hiddenLabel
-                            margin="normal"
-                            name="comment"
-                            id="comment"
-                            value={value}
-                            onChange={onChange}
-                            error={!!error}
-                            helperText={error ? error.message : null}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={() => (alert("Send"))}
-                                            edge="end"
-                                        >
-                                            <SendIcon/>
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    )}
-                    rules={{
-                        required: "required input",
-                    }}
-                /> :
-
-                <p>Login</p>
-            }
-        </>
-    )
-}
-
-interface CommentItemProps {
-    comment: any
-}
-
-export const Comment: FC<CommentItemProps> = ({comment}) => {
-    return (
-        <div style={{padding: "2rem"}}>
-            {comment?.length} Comments
-            <CommentField/>
-            {comment?.map((c: { id: React.Key | null | undefined; }) => <SingleComment key={c.id} comment={c}/>)}
-        </div>
-    );
-}
-
-export const SingleComment: FC<CommentItemProps> = ({comment}) => {
-    const ref = useRef<HTMLInputElement>(null);
+export const Comment = ({comment}) => {
+    const ref = useRef();
     const [addMark, {}] = post.useAddMarkMutation()
     const {data: me} = auth.endpoints.AuthMe.useQueryState('')
     const [reply, setReply] = useState(false)
     useOnClickOutside(ref, () => setReply(false));
 
-    const handleMark = async (mark: boolean) => {
+    const handleMark = async (mark) => {
         if (me) {
             try {
                 addMark({
@@ -122,11 +38,9 @@ export const SingleComment: FC<CommentItemProps> = ({comment}) => {
             alert("Please login")
         }
     }
-
-    console.log(comment.parent_id)
     return (
         <>
-            <div className={comment.parent_id ? styles.reply : styles.comment}>
+            <div key={comment.id} className={styles.comment}>
                 <div className={styles.avatar}>
                     <Avatar sx={{bgcolor: red[500]}}>
                         {comment.user_login.substring(0, 1)}
@@ -136,6 +50,7 @@ export const SingleComment: FC<CommentItemProps> = ({comment}) => {
                     <a className={styles.author}>{comment.user_login}</a>
                     <div className={styles.metadata}>{date(comment.created_at)}</div>
                     <div className={styles.content}>{comment.content}</div>
+
                     <div className={styles.actions}>
                         {comment.likes}
                         <KeyboardArrowUpIcon fontSize={'small'} className={styles.arrow}
@@ -146,27 +61,26 @@ export const SingleComment: FC<CommentItemProps> = ({comment}) => {
                                                onClick={() => handleMark(false)}/>
                         <div style={{marginLeft: '7px'}} onClick={() => setReply(true)}>Reply</div>
                     </div>
-                    {comment.comments &&
-                        comment.comments.map((reply: { id: React.Key | null | undefined; }) => (
-                            <Comment key={reply.id}
-                                // @ts-ignore
-                                     comment={reply}/>
-                        ))}
                 </div>
                 {reply &&
                     <div style={{maxWidth: '40%', paddingLeft: '95px'}} ref={ref}>
-                        <CommentField/>
+                        <CommentField id={comment.id} setreply={setReply}/>
                     </div>}
+                {comment.comments &&
+                    comment.comments.map((reply) => (
+                        <Comment key={reply.id} comment={reply}/>
+                    ))}
+
             </div>
         </>
-    );
+    )
 };
 
 
-function useOnClickOutside(ref: any, handler: any) {
+function useOnClickOutside(ref, handler) {
     useEffect(
         () => {
-            const listener = (event: any) => {
+            const listener = (event) => {
                 // Do nothing if clicking ref's element or descendent elements
                 if (!ref.current || ref.current.contains(event.target)) {
                     return;

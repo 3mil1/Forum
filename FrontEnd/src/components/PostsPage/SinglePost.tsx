@@ -1,7 +1,6 @@
 import React from 'react';
 import {useNavigate, useParams} from "react-router-dom";
 import {post} from "../../services/PostService";
-import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import styles from "./posts.module.css";
@@ -13,6 +12,7 @@ import {date} from './Posts';
 import {auth} from "../../services/AuthService";
 import {red} from "@mui/material/colors";
 import {Comment} from "../comment/Comment";
+import {CommentField} from "../comment/addComment";
 
 const SinglePost = () => {
     let navigate = useNavigate();
@@ -22,9 +22,12 @@ const SinglePost = () => {
     const {data: me} = auth.endpoints.AuthMe.useQueryState('')
     const [addMark, {}] = post.useAddMarkMutation()
 
-   if (isError) {
-       navigate('*')
-   }
+    // @ts-ignore
+    const {data: commentFromJson} = post.useCommentsByIdQuery(id)
+
+    if (isError) {
+        navigate('*')
+    }
 
     const handleMark = async (mark: boolean) => {
         try {
@@ -77,7 +80,16 @@ const SinglePost = () => {
                         className={styles.like}>{postFromJson && postFromJson.dislikes ? postFromJson.dislikes : 0}</div>
                 </CardActions>
             </Card>
-            <Comment/>
+            <div style={{padding: "2rem"}}>
+                Comments
+                <CommentField
+                    // @ts-ignore
+                    id={postFromJson?.id} setreply={""}/>
+                {commentFromJson?.map((comment) => (
+                    <Comment key={comment.id} comment={comment}/>
+                ))}
+            </div>
+
         </Paper>
     );
 };

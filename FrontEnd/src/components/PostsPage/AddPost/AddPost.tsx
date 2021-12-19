@@ -79,6 +79,8 @@ const AddPost = () => {
                             )}
                             rules={{
                                 required: "required input",
+                                validate: (value: string) => !!value.trim() || 'no whitespaces',
+
                             }}
                         />
                         <Controller
@@ -101,6 +103,7 @@ const AddPost = () => {
                             )}
                             rules={{
                                 required: "required input",
+                                validate: (value: string) => !!value.trim() || 'no whitespaces',
                             }}
                         />
                             <DialogContentText sx={{marginBottom: 1, marginTop: 2}}>
