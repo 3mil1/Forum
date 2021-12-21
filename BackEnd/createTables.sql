@@ -77,6 +77,6 @@ create unique index if not exists sessions_session_id_uindex
 create unique index if not exists sessions_user_id_uindex
     on sessions (user_id);
 
--- insert into categories (name) values ('Books'), ('Films'), ('Games'), ('Other');
+insert OR IGNORE into categories (name) values ('Books'), ('Films'), ('Games'), ('Other');
 
 
