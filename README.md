@@ -1,3 +1,14 @@
 # Forum
-Go, SQLite, React, Redux application
-Online: http://65.21.180.178:3001/
+
+Application was created for educational purposes
+
+Online version:
+```http://65.21.180.178:3001/```
+
+## Usage
+
+Docker must be installed
+
+```bash
+./start.sh
+```
