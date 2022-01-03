@@ -21,6 +21,7 @@ create table if not exists posts
     content    text     not null,
     created_at timestamp         default CURRENT_TIMESTAMP not null,
     subject    text     not null default '',
+    image varchar(255),
     parent_id  integer null
         constraint posts_posts_id_fk
             references posts (id)

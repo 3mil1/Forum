@@ -6,8 +6,13 @@ import (
 	"forum/internal/appError"
 	"forum/internal/models"
 	"forum/pkg/logger"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // @Summary      Add Post
@@ -19,11 +24,80 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("Post to Add_POST POST /api/post/new")
 
-	var postFromJson models.Post
-	err := json.NewDecoder(r.Body).Decode(&postFromJson)
+	err := r.ParseMultipartForm(21 << 20)
 	if err != nil {
-		logger.InfoLogger.Println("Invalid json received from client")
-		return appError.NewAppError(err, "Provided json is invalid", http.StatusBadRequest)
+		fmt.Println("ParseMultipartForm", err)
+		return err
+	}
+	file, handler, err := r.FormFile("image")
+
+	strs := strings.Split(r.FormValue("categories"), ",")
+	categories := make([]int, len(strs))
+	for i := range categories {
+		categories[i], _ = strconv.Atoi(strs[i])
+	}
+
+	if err != nil {
+		// check if a file is sent.
+		if err.Error() == "http: no such file" {
+			postFromJson := models.Post{
+				Categories: categories,
+				Content:    r.FormValue("content"),
+				Subject:    r.FormValue("subject"),
+			}
+
+			// read from context
+			user, _ := r.Context().Value("values").(userContext)
+			fmt.Println("from context:", user)
+
+			postFromJson.UserId = user.userID
+
+			post, err := api.service.Post().Create(&postFromJson)
+			if err != nil {
+				return err
+			}
+
+			logger.InfoLogger.Println("Creating Post")
+			return json.NewEncoder(w).Encode(post)
+
+		} else {
+			fmt.Println(err)
+			return err
+			// handle other errors
+		}
+	} else {
+
+	}
+	defer file.Close()
+
+	if handler.Size > 20<<20 {
+		fmt.Println(err)
+		return err
+		// error handling
+	}
+
+	fileName := fmt.Sprintf("./uploads/%d%s", time.Now().UnixNano(), filepath.Ext(handler.Filename))
+
+	dst, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("Create", err)
+		return err
+		// error handling
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		fmt.Println("Copy", err)
+		return err
+		// error handling
+	}
+
+	postFromJson := models.Post{
+		ImagePath:  fileName,
+		Categories: categories,
+		Content:    r.FormValue("content"),
+		Subject:    r.FormValue("subject"),
 	}
 
 	// read from context

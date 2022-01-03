@@ -4,7 +4,7 @@ import {post} from "../../services/PostService";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import styles from "./posts.module.css";
-import {Avatar, CardActions, CardHeader, IconButton, Paper} from "@mui/material";
+import {Avatar, CardActions, CardHeader, CardMedia, IconButton, Paper} from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import Typography from "@mui/material/Typography";
@@ -63,6 +63,17 @@ const SinglePost = () => {
                     <Typography variant="subtitle1" paragraph align={'left'}>
                         {postFromJson && postFromJson.content}
                     </Typography>
+
+                    {
+                        postFromJson?.image_path &&
+                        <CardMedia
+                            component="img"
+                            image={"http://localhost:8081/api/" + postFromJson?.image_path}
+                            alt="CardMedia Image Example"
+                            title="CardMedia Image Example"
+                        />
+                    }
+
                 </CardContent>
                 <CardActions className={styles.box}>
                     <IconButton aria-label="delete" disabled={!(me!)} onClick={() => handleMark(true)}

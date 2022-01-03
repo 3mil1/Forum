@@ -16,7 +16,7 @@ type PostRepo struct {
 }
 
 var (
-	postColumns   = "user_id, content, subject, parent_id"
+	postColumns   = "user_id, content, subject, parent_id, image"
 	markerColumns = "post_id, user_id, mark"
 )
 
@@ -29,8 +29,8 @@ func (pr *PostRepo) Create(p *models.Post) (*models.Post, error) {
 	if err != nil {
 		return nil, appError.DataBaseError(err)
 	}
-	query := fmt.Sprintf(`INSERT INTO posts (%s) VALUES ($1, $2, $3, $4) returning id, created_at`, postColumns)
-	row := tx.QueryRow(query, p.UserId, p.Content, p.Subject, id)
+	query := fmt.Sprintf(`INSERT INTO posts (%s) VALUES ($1, $2, $3, $4, $5) returning id, created_at`, postColumns)
+	row := tx.QueryRow(query, p.UserId, p.Content, p.Subject, id, p.ImagePath)
 	err = row.Scan(&p.Id, &p.CreatedAt)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
@@ -115,6 +115,7 @@ func (pr *PostRepo) FindByID(id int) (*models.PostAndMarks, error) {
        p.content,
        p.subject,
        p.created_at,
+       p.image,
        COALESCE(p.parent_id, 0)      as parent_id,
        coalesce(dislike, 0)          as dislike,
        coalesce(like, 0)             as dislike,
@@ -133,7 +134,7 @@ FROM posts p
 WHERE p.id =$1`
 	row := pr.storage.db.QueryRow(query, id)
 	var post models.PostAndMarks
-	err := row.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ParentId, &post.Dislikes, &post.Likes, &post.Categories)
+	err := row.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ImagePath, &post.ParentId, &post.Dislikes, &post.Likes, &post.Categories)
 	if err != nil {
 		return nil, appError.NotFoundError(err, "cannot find post")
 	}

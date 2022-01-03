@@ -61,6 +61,10 @@ func (api *API) configureRouter() {
 	api.router.Handle(prefix+"/category", ErrorHandler(api.findByCategory))
 	api.router.Handle(prefix+"/post/user_posts", api.UserIdentity(ErrorHandler(api.findByUser)))
 	api.router.Handle(prefix+"/post/like", api.UserIdentity(ErrorHandler(api.findAllLiked)))
+
+	//Files
+	imageServer := http.FileServer(http.Dir("./uploads"))
+	api.router.Handle(prefix+"/uploads/", http.StripPrefix("/api/uploads/", imageServer))
 }
 
 //configureStore method

@@ -24,6 +24,7 @@ func (p *PostService) Create(post *models.Post) (*models.Post, error) {
 	if len(post.Categories) == 0 && post.ParentId == 0 {
 		return nil, appError.InvalidArgumentError(nil, "category is missing")
 	}
+
 	posts, err := p.storage.Post().Create(post)
 	if err != nil {
 		return nil, err
