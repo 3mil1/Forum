@@ -7,6 +7,7 @@ import (
 	"forum/internal/models"
 	"forum/pkg/logger"
 	"io"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 		fmt.Println("ParseMultipartForm", err)
 		return err
 	}
+
 	file, handler, err := r.FormFile("image")
 
 	strs := strings.Split(r.FormValue("categories"), ",")
@@ -77,6 +79,16 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	fileName := fmt.Sprintf("./uploads/%d%s", time.Now().UnixNano(), filepath.Ext(handler.Filename))
+
+	filetype := mime.TypeByExtension(filepath.Ext(handler.Filename))
+	if filetype != "image/jpeg" && filetype != "image/png" && filetype != "image/gif" && filetype != "image/svg+xml" {
+		return appError.NewAppError(err, "Wrong file type. Accepted formats are jpeg, png, gif, svg", http.StatusUnsupportedMediaType)
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		// error handling
+	}
 
 	dst, err := os.Create(fileName)
 	if err != nil {

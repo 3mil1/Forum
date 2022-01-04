@@ -67,6 +67,7 @@ const SinglePost = () => {
                     {
                         postFromJson?.image_path &&
                         <CardMedia
+                            sx={{ maxWidth: '100%', height: 'auto' }}
                             component="img"
                             image={"http://localhost:8081/api/" + postFromJson?.image_path}
                             alt="CardMedia Image Example"
