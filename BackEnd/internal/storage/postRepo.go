@@ -115,7 +115,7 @@ func (pr *PostRepo) FindByID(id int) (*models.PostAndMarks, error) {
        p.content,
        p.subject,
        p.created_at,
-       p.image,
+       coalesce (p.image, '')        as image,
        COALESCE(p.parent_id, 0)      as parent_id,
        coalesce(dislike, 0)          as dislike,
        coalesce(like, 0)             as dislike,
@@ -136,6 +136,7 @@ WHERE p.id =$1`
 	var post models.PostAndMarks
 	err := row.Scan(&post.Id, &post.UserId, &post.UserLogin, &post.Content, &post.Subject, &post.CreatedAt, &post.ImagePath, &post.ParentId, &post.Dislikes, &post.Likes, &post.Categories)
 	if err != nil {
+		fmt.Println(err)
 		return nil, appError.NotFoundError(err, "cannot find post")
 	}
 	return &post, nil
