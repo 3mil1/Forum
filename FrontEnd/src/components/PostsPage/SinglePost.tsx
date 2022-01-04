@@ -13,6 +13,8 @@ import {auth} from "../../services/AuthService";
 import {red} from "@mui/material/colors";
 import {Comment} from "../comment/Comment";
 import {CommentField} from "../comment/addComment";
+import {AlertSlice, setAlert} from "../../reducers/AlertSlice";
+import {useAppDispatch} from "../../hooks/redux";
 
 const SinglePost = () => {
     let navigate = useNavigate();
@@ -67,7 +69,7 @@ const SinglePost = () => {
                     {
                         postFromJson?.image_path &&
                         <CardMedia
-                            sx={{ maxWidth: '100%', height: 'auto' }}
+                            sx={{maxWidth: '100%', height: 'auto'}}
                             component="img"
                             image={"http://localhost:8081/api/" + postFromJson?.image_path}
                             alt="CardMedia Image Example"

@@ -16,12 +16,15 @@ import IconButton from '@mui/material/IconButton';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import {styled} from '@mui/material/styles';
 import {appendFile} from "fs";
+import {AlertSlice, setAlert} from "../../../reducers/AlertSlice";
+import {useAppDispatch} from "../../../hooks/redux";
 
 
 let postCategories: number[] = []
 
 
 const AddPost = () => {
+    const dispatch = useAppDispatch()
     const {data: me} = auth.endpoints.AuthMe.useQueryState('')
     const {handleSubmit, control, reset} = useForm();
     const [addPost, {isLoading}] = post.useAddPostMutation()
@@ -65,7 +68,17 @@ const AddPost = () => {
             formData.append("categories", postCategories);
             // @ts-ignore
             formData.append("image", selectedImage);
-            addPost(formData).unwrap().then( (ans) => console.log(ans))
+            addPost(formData).unwrap()
+                .catch((error) => {
+                    if (error.data) {
+                        const errorState: AlertSlice = {
+                            isAlert: true,
+                            alertText: error.data.message,
+                            severity: 'error'
+                        }
+                        dispatch(setAlert(errorState))
+                    }
+                })
 
 
             setOpen(false);

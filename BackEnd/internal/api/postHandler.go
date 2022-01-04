@@ -27,7 +27,7 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 
 	err := r.ParseMultipartForm(21 << 20)
 	if err != nil {
-		fmt.Println("ParseMultipartForm", err)
+		logger.ErrorLogger.Println(err.Error())
 		return err
 	}
 
@@ -56,6 +56,7 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 
 			post, err := api.service.Post().Create(&postFromJson)
 			if err != nil {
+				logger.ErrorLogger.Println(err.Error())
 				return err
 			}
 
@@ -63,19 +64,14 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 			return json.NewEncoder(w).Encode(post)
 
 		} else {
-			fmt.Println(err)
-			return err
-			// handle other errors
+			return appError.NewAppError(err, "Wrong file type. Accepted formats are jpeg, png, gif, svg", http.StatusUnsupportedMediaType)
 		}
-	} else {
-
 	}
+
 	defer file.Close()
 
 	if handler.Size > 20<<20 {
-		fmt.Println(err)
-		return err
-		// error handling
+		return appError.NewAppError(err, "Image too large, you can upload files up to 20 MB", http.StatusBadRequest)
 	}
 
 	fileName := fmt.Sprintf("./uploads/%d%s", time.Now().UnixNano(), filepath.Ext(handler.Filename))
@@ -87,22 +83,21 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 
 	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
-		// error handling
+		logger.ErrorLogger.Println(err.Error())
+		return err
 	}
 
 	dst, err := os.Create(fileName)
 	if err != nil {
-		fmt.Println("Create", err)
+		logger.ErrorLogger.Println(err.Error())
 		return err
-		// error handling
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		fmt.Println("Copy", err)
+		logger.ErrorLogger.Println(err.Error())
 		return err
-		// error handling
 	}
 
 	postFromJson := models.Post{
