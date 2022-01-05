@@ -30,83 +30,21 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 		logger.ErrorLogger.Println(err.Error())
 		return err
 	}
-
-	file, handler, err := r.FormFile("image")
-
+	fileName, err := api.addImg(r)
+	if err != nil {
+		return err
+	}
 	strs := strings.Split(r.FormValue("categories"), ",")
 	categories := make([]int, len(strs))
 	for i := range categories {
 		categories[i], _ = strconv.Atoi(strs[i])
 	}
-
-	if err != nil {
-		// check if a file is sent.
-		if err.Error() == "http: no such file" {
-			postFromJson := models.Post{
-				Categories: categories,
-				Content:    r.FormValue("content"),
-				Subject:    r.FormValue("subject"),
-			}
-
-			// read from context
-			user, _ := r.Context().Value("values").(userContext)
-			fmt.Println("from context:", user)
-
-			postFromJson.UserId = user.userID
-
-			post, err := api.service.Post().Create(&postFromJson)
-			if err != nil {
-				logger.ErrorLogger.Println(err.Error())
-				return err
-			}
-
-			logger.InfoLogger.Println("Creating Post")
-			return json.NewEncoder(w).Encode(post)
-
-		} else {
-			return appError.NewAppError(err, "Wrong file type. Accepted formats are jpeg, png, gif, svg", http.StatusUnsupportedMediaType)
-		}
-	}
-
-	defer file.Close()
-
-	if handler.Size > 20<<20 {
-		return appError.NewAppError(err, "Image too large, you can upload files up to 20 MB", http.StatusBadRequest)
-	}
-
-	fileName := fmt.Sprintf("./uploads/%d%s", time.Now().UnixNano(), filepath.Ext(handler.Filename))
-
-	filetype := mime.TypeByExtension(filepath.Ext(handler.Filename))
-	if filetype != "image/jpeg" && filetype != "image/png" && filetype != "image/gif" && filetype != "image/svg+xml" {
-		return appError.NewAppError(err, "Wrong file type. Accepted formats are jpeg, png, gif, svg", http.StatusUnsupportedMediaType)
-	}
-
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		logger.ErrorLogger.Println(err.Error())
-		return err
-	}
-
-	dst, err := os.Create(fileName)
-	if err != nil {
-		logger.ErrorLogger.Println(err.Error())
-		return err
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		logger.ErrorLogger.Println(err.Error())
-		return err
-	}
-
 	postFromJson := models.Post{
 		ImagePath:  fileName,
 		Categories: categories,
 		Content:    r.FormValue("content"),
 		Subject:    r.FormValue("subject"),
 	}
-
 	// read from context
 	user, _ := r.Context().Value("values").(userContext)
 	fmt.Println("from context:", user)
@@ -120,6 +58,53 @@ func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 
 	logger.InfoLogger.Println("Creating Post")
 	return json.NewEncoder(w).Encode(post)
+}
+
+func (api *API) addImg(r *http.Request) (string, error) {
+	file, handler, err := r.FormFile("image")
+	if err != nil {
+		// check if a file is sent.
+		if err.Error() == "http: no such file" {
+			return "", nil
+		} else {
+			return "", appError.UnsupportedError(err, "Wrong file type. Accepted formats are jpeg, png, gif, svg")
+		}
+	}
+	defer file.Close()
+
+	if handler.Size > 20<<20 {
+		return "", appError.InvalidArgumentError(err, "Image too large, you can upload files up to 20 MB")
+	}
+
+	if err := os.MkdirAll("./uploads", os.ModePerm); err != nil {
+		logger.ErrorLogger.Println(err)
+		return "", appError.SystemError(err)
+	}
+	fileName := fmt.Sprintf("./uploads/%d%s", time.Now().UnixNano(), filepath.Ext(handler.Filename))
+
+	filetype := mime.TypeByExtension(filepath.Ext(handler.Filename))
+	if filetype != "image/jpeg" && filetype != "image/png" && filetype != "image/gif" && filetype != "image/svg+xml" {
+		return "", appError.UnsupportedError(err, "Wrong file type. Accepted formats are jpeg, png, gif, svg")
+	}
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		logger.ErrorLogger.Println(err.Error())
+		return "", appError.SystemError(err)
+	}
+
+	dst, err := os.Create(fileName)
+	if err != nil {
+		logger.ErrorLogger.Println(err.Error())
+		return "", appError.SystemError(err)
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		logger.ErrorLogger.Println(err.Error())
+		return "", appError.SystemError(err)
+	}
+	return fileName, nil
 }
 
 // @Summary      Show All Posts

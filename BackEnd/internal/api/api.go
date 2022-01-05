@@ -1,7 +1,7 @@
 package api
 
 import (
-	_ "forum/docs"
+	//_ "forum/docs"
 	"forum/internal/service"
 	"forum/internal/storage"
 	"forum/pkg/logger"

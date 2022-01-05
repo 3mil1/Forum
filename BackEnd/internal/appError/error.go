@@ -51,3 +51,7 @@ func DataBaseError(err error) *AppError {
 func NotFoundError(err error, message string) *AppError {
 	return NewAppError(err, message, http.StatusNotFound)
 }
+
+func UnsupportedError(err error, message string) *AppError {
+	return NewAppError(err, message, http.StatusUnsupportedMediaType)
+}
