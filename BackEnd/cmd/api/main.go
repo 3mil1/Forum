@@ -19,7 +19,7 @@ func init() {
 	//flag.BoolVar(&createNewDb, "createDB", false, "Specify whether to create a new database")
 }
 
-// @title Forum API
+// @title forum API
 // @version 1.0
 // @description This is a sample service for managing orders
 // @termsOfService http://swagger.io/terms/
