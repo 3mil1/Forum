@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useRef, useState} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -15,7 +15,6 @@ import {auth} from "../../../services/AuthService";
 import IconButton from '@mui/material/IconButton';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import {styled} from '@mui/material/styles';
-import {appendFile} from "fs";
 import {AlertSlice, setAlert} from "../../../reducers/AlertSlice";
 import {useAppDispatch} from "../../../hooks/redux";
 
@@ -41,10 +40,27 @@ const AddPost = () => {
 
     useEffect(() => {
         if (selectedImage) {
-            setImageUrl(URL.createObjectURL(selectedImage));
+            if (validateSize(selectedImage.size)) {
+                setImageUrl(URL.createObjectURL(selectedImage));
+            }
         }
     }, [selectedImage]);
 
+
+    function validateSize(input: number) {
+        const fileSize = input / 1024 / 1024; // in MiB
+        if (fileSize > 20) {
+            const errorState: AlertSlice = {
+                isAlert: true,
+                alertText: "Image too large, you can upload files up to 20 MB",
+                severity: 'warning'
+            }
+            dispatch(setAlert(errorState))
+            setSelectedImage(null)
+            return false
+        }
+        return true
+    }
 
     const handleClickOpen = () => {
         setOpen(true);
