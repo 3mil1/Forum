@@ -24,34 +24,43 @@ import (
 func (api *API) addPost(w http.ResponseWriter, r *http.Request) error {
 	initHeaders(w)
 	logger.InfoLogger.Println("Post to Add_POST POST /api/post/new")
+	var postFromRequest models.Post
+	ct := r.Header.Get("Content-Type")
+	if strings.Contains(ct, "multipart/form-data") {
+		err := r.ParseMultipartForm(21 << 20)
+		if err != nil {
+			logger.ErrorLogger.Println(err.Error())
+			return err
+		}
+		fileName, err := api.addImg(r)
+		if err != nil {
+			return err
+		}
+		strs := strings.Split(r.FormValue("categories"), ",")
+		categories := make([]int, len(strs))
+		for i := range categories {
+			categories[i], _ = strconv.Atoi(strs[i])
+		}
+		postFromRequest = models.Post{
+			ImagePath:  fileName,
+			Categories: categories,
+			Content:    r.FormValue("content"),
+			Subject:    r.FormValue("subject"),
+		}
+	} else {
+		if err := json.NewDecoder(r.Body).Decode(&postFromRequest); err != nil {
+			logger.ErrorLogger.Println("cannot unmarshal json")
+			return appError.InvalidArgumentError(err, "wrong request format")
+		}
+	}
 
-	err := r.ParseMultipartForm(21 << 20)
-	if err != nil {
-		logger.ErrorLogger.Println(err.Error())
-		return err
-	}
-	fileName, err := api.addImg(r)
-	if err != nil {
-		return err
-	}
-	strs := strings.Split(r.FormValue("categories"), ",")
-	categories := make([]int, len(strs))
-	for i := range categories {
-		categories[i], _ = strconv.Atoi(strs[i])
-	}
-	postFromJson := models.Post{
-		ImagePath:  fileName,
-		Categories: categories,
-		Content:    r.FormValue("content"),
-		Subject:    r.FormValue("subject"),
-	}
 	// read from context
 	user, _ := r.Context().Value("values").(userContext)
 	fmt.Println("from context:", user)
 
-	postFromJson.UserId = user.userID
+	postFromRequest.UserId = user.userID
 
-	post, err := api.service.Post().Create(&postFromJson)
+	post, err := api.service.Post().Create(&postFromRequest)
 	if err != nil {
 		return err
 	}
